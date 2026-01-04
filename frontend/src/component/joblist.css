@@ -1,0 +1,326 @@
+
+.full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  flex-direction: column;
+  padding: 40px 20px;
+}
+
+.full .back-btn {
+  align-self: flex-start;
+  margin: 0 0 30px 30px;
+  padding: 12px 24px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.full .back-btn:hover {
+  transform: translateX(-5px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.job_detail {
+  width: 85vw;
+  max-width: 1000px;
+  min-height: 70vh;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  position: relative;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.job_detail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  border-radius: 20px 0 0 20px;
+}
+
+.job_detail h1 {
+  font-size: 2.5rem;
+  color: #2c3e50;
+  margin: 0 0 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #f0f0f0;
+}
+
+.job_detail p {
+  font-size: 1.2rem;
+  color: #34495e;
+  line-height: 1.7;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: flex-start;
+}
+
+.job_detail p b {
+  color: #2c3e50;
+  min-width: 150px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.job_detail .description-content {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 5px solid #3498db;
+  margin-top: 10px;
+  line-height: 1.8;
+  font-size: 1.1rem;
+  color: black;
+  padding-left: 15px;
+  letter-spacing: 1px;
+  word-spacing: 2px;
+  text-transform: capitalize;
+}
+
+.job_detail button {
+  align-self: center;
+  padding: 16px 40px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  margin-top: 30px;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(76, 217, 100, 0.3);
+}
+
+.job_detail button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(76, 217, 100, 0.4);
+}
+
+
+.joblist-container {
+  width: 100vw;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.joblist-header {
+  text-align: center;
+  margin-bottom: 40px;
+  color: white;
+}
+
+.joblist-header h1 {
+  font-size: 2.8rem;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.refresh-btn {
+  padding: 14px 30px;
+  background: white;
+  color: #667eea;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.refresh-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(255, 255, 255, 0.3);
+}
+
+
+.loading-message {
+  color: white;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 30px 0;
+}
+
+.error-message {
+  background: rgba(255, 107, 107, 0.9);
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin: 20px 0;
+  text-align: center;
+  font-size: 1.1rem;
+  box-shadow: 0 6px 20px rgba(255, 107, 107, 0.3);
+}
+
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 30px;
+  width: 100%;
+  max-width: 1400px;
+  padding: 20px;
+}
+
+.job-card {
+  background: white;
+  border-radius: 15px;
+  padding: 25px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s ease;
+  border: 1px solid #e8e8e8;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.job-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.job-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+}
+
+.job-card h3 {
+  color: #2c3e50;
+  font-size: 1.5rem;
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin: 8px 0;
+  color: #34495e;
+  line-height: 1.6;
+}
+
+.info-label {
+  color: #2c3e50;
+  font-weight: 600;
+  min-width: 100px;
+  display: inline-block;
+}
+
+.info-value {
+  flex: 1;
+}
+
+.salary-value {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.job-card button {
+  align-self: center;
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.job-card button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+@media (max-width: 768px) {
+  .full {
+    padding: 20px;
+  }
+  
+  .job_detail {
+    width: 95vw;
+    padding: 25px;
+  }
+  
+  .job_detail h1 {
+    font-size: 2rem;
+  }
+  
+  .joblist-header h1 {
+    font-size: 2rem;
+  }
+  
+  .jobs-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .job-card {
+    padding: 20px;
+  }
+  
+  .job-card h3 {
+    font-size: 1.3rem;
+  }
+  
+  .info-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+  
+  .info-label {
+    min-width: auto;
+  }
+}

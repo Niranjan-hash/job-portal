@@ -1,0 +1,357 @@
+/* =========================
+   RECRUITER PAGE
+========================= */
+
+.recruiter-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  width: 100vw;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.recruiter-container {
+  width: 100%;
+  max-width: 700px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.recruiter-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 100%;
+  background: linear-gradient(to bottom, #667eea, #764ba2);
+  border-radius: 20px 0 0 20px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.page-title {
+  color: #2c3e50;
+  font-size: 2.2rem;
+  margin-bottom: 30px;
+  text-align: center;
+  padding-bottom: 15px;
+  border-bottom: 3px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+/* =========================
+   ERROR MESSAGE
+========================= */
+
+.error-alert {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border-radius: 10px;
+  padding: 18px;
+  margin-bottom: 30px;
+  text-align: center;
+  font-weight: 500;
+  animation: slideIn 0.5s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+/* =========================
+   FORM STYLES
+========================= */
+
+.recruiter-form {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  color: #2c3e50;
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 5px;
+}
+
+.form-input {
+  padding: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  background-color: #e0e0e0;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* =========================
+   RADIO BUTTONS
+========================= */
+
+.radio-group {
+  display: flex;
+  gap: 30px;
+  margin-top: 10px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  color: #8c98a4;
+  font-weight: 500;
+  padding: 12px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.radio-option:hover {
+  border-color: #667eea;
+  background-color: rgba(102, 126, 234, 0.05);
+}
+
+.radio-option input[type="radio"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  background-color: white;
+}
+
+.radio-option input[type="radio"]:checked {
+  accent-color: #ff0000;
+}
+
+.radio-option.selected {
+  border-color: #667eea;
+  /* background: linear-gradient(135deg, rgba(249, 249, 249, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); */
+  background-color:white;
+  color: #667eea;
+  font-weight: 600;
+}
+
+/* =========================
+   TEXTAREA
+========================= */
+
+.form-textarea {
+  padding: 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+  background-color: #e0e0e0;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.9rem;
+  color: #7f8c8d;
+  margin-top: 5px;
+}
+
+.char-count.limit {
+  color: #e74c3c;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.form-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.submit-btn {
+  flex: 2;
+  padding: 18px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #4cd964 0%, #5ac8fa 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(76, 217, 100, 0.3);
+}
+
+.submit-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(76, 217, 100, 0.4);
+}
+
+.submit-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.history-btn {
+  flex: 1;
+  padding: 18px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 6px 20px rgba(240, 147, 251, 0.3);
+}
+
+.history-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(240, 147, 251, 0.4);
+}
+
+/* =========================
+   LOADING STATE
+========================= */
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  z-index: 10;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #667eea;
+  border-radius: 50%;
+  animation: spin 1.5s linear infinite;
+}
+
+/* =========================
+   SUCCESS MESSAGE
+========================= */
+
+.success-message {
+  text-align: center;
+  padding: 40px;
+}
+
+.success-icon {
+  font-size: 4rem;
+  color: #27ae60;
+  margin-bottom: 20px;
+}
+
+.success-text {
+  font-size: 1.3rem;
+  color: #2c3e50;
+  margin-bottom: 30px;
+}
+
+/* =========================
+   ANIMATIONS
+========================= */
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   RESPONSIVE DESIGN
+========================= */
+
+@media (max-width: 768px) {
+  .recruiter-container {
+    padding: 25px;
+  }
+  
+  .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .radio-group {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .form-buttons {
+    flex-direction: column;
+  }
+  
+  .submit-btn,
+  .history-btn {
+    width: 100%;
+  }
+}
