@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const JobDetail = require("../model/jobdetail");
-const authenticateToken =require('../middleware/auth')
+const { authenticateToken } = require('../middleware/auth');
 
 // POST – Create Job
 router.post("/", authenticateToken, async (req, res) => {
@@ -9,7 +9,7 @@ router.post("/", authenticateToken, async (req, res) => {
   console.log("Body:", req.body);
   
   try {
-    const { title, company, location, type, salary, description } = req.body;
+    const { title, company, location, type, salary, description, companyContact, skills } = req.body;
 
     // Validate
     if (!title || !company || !location || !type) {
@@ -28,6 +28,8 @@ router.post("/", authenticateToken, async (req, res) => {
       type,
       salary: salary,
       description: description,
+      companyContact: companyContact,
+      skills: skills,
       postedby: req.user.id
     });
     

@@ -15,6 +15,7 @@ function History() {
         location: '', 
         type: '', 
         salary: '', 
+        skills: '',
         description: ''
     });
     const [deletingId, setDeletingId] = useState(null);
@@ -97,6 +98,7 @@ function History() {
             location: job.location || '',
             type: job.type || 'full time',
             salary: job.salary || '',
+            skills: job.skills || '',
             description: job.description || ''
         });
     };
@@ -180,19 +182,19 @@ function History() {
         <div className="history-page">
             {/* Header */}
             <div className="page-header">
-                <h1 className="page-title">📋 My Posted Jobs</h1>
+                <h1 className="page-title">My Posted Jobs</h1>
                 <div className="header-controls">
                     <button 
                         onClick={handlePostNewJob}
                         className="action-button btn-new-job"
                     >
-                        📝 Post New Job
+                        Post New Job
                     </button>
                     <button 
                         onClick={handleBackToDashboard}
                         className="action-button btn-dashboard"
                     >
-                        ⬅️ Back to Dashboard
+                        Back to Dashboard
                     </button>
                 </div>
             </div>
@@ -200,9 +202,9 @@ function History() {
             {/* Error Message */}
             {error && (
                 <div className="error-alert">
-                    <div>⚠️ {error}</div>
+                    <div>{error}</div>
                     <button onClick={fetchRecruiterJobs} className="action-button btn-save">
-                        🔄 Retry
+                        Retry
                     </button>
                 </div>
             )}
@@ -215,7 +217,7 @@ function History() {
                         onClick={handlePostNewJob}
                         className="btn-first-job"
                     >
-                        🚀 Post Your First Job
+                        Post Your First Job
                     </button>
                 </div>
             )}
@@ -227,7 +229,7 @@ function History() {
                         {editingJob === job._id ? (
                             /* EDIT MODE */
                             <div className="job-edit">
-                                <h3 className="edit-title">✏️ Edit Job</h3>
+                                <h3 className="edit-title">Edit Job</h3>
                                 
                                 <div className="edit-form">
                                     <div className="form-field">
@@ -304,6 +306,17 @@ function History() {
                                     </div>
                                     
                                     <div className="form-field">
+                                        <input
+                                            type="text"
+                                            name="skills"
+                                            value={editForm.skills}
+                                            onChange={handleInputChange}
+                                            placeholder="Required Skills (e.g., React, Node.js)"
+                                            className="form-input"
+                                        />
+                                    </div>
+
+                                    <div className="form-field">
                                         <textarea
                                             name="description"
                                             value={editForm.description}
@@ -320,14 +333,14 @@ function History() {
                                             disabled={updatingId === job._id}
                                             className="action-button btn-save"
                                         >
-                                            {updatingId === job._id ? '⏳ Saving...' : '💾 Save Changes'}
+                                            {updatingId === job._id ? 'Saving...' : 'Save Changes'}
                                         </button>
                                         <button 
                                             onClick={handleCancelEdit}
                                             disabled={updatingId === job._id}
                                             className="action-button btn-cancel"
                                         >
-                                            ❌ Cancel
+                                            Cancel
                                         </button>
                                     </div>
                                 </div>
@@ -339,46 +352,63 @@ function History() {
                                 
                                 <div className="job-info">
                                     <div className="info-row">
-                                        <span className="info-label">🏢 Company:</span>
+                                        <span className="info-label">Company:</span>
                                         <span className="info-value">{job.company}</span>
                                     </div>
                                     <div className="info-row">
-                                        <span className="info-label">📍 Location:</span>
+                                        <span className="info-label">Location:</span>
                                         <span className="info-value">{job.location}</span>
                                     </div>
                                     <div className="info-row">
-                                        <span className="info-label">🕐 Type:</span>
+                                        <span className="info-label">Type:</span>
                                         <span className="info-value">{job.type}</span>
                                     </div>
                                     <div className="info-row">
-                                        <span className="info-label">💰 Salary:</span>
+                                        <span className="info-label">Salary:</span>
                                         <span className="info-value salary-value">{job.salary || 'Not specified'}</span>
                                     </div>
+                                    {job.skills && (
+                                        <div className="history-skills">
+                                            <span className="info-label">Skills:</span>
+                                            <div className="skills-tags" style={{ marginTop: '6px' }}>
+                                                {job.skills.split(',').map((skill, i) => (
+                                                    <span key={i} className="skill-tag">{skill.trim()}</span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="info-row">
-                                        <span className="info-label">📝 Description:</span>
+                                        <span className="info-label">Description:</span>
                                     </div>
-                                    <div className="job-description-box">
-                                        {job.description}
+                                    <div className="job-description-box" style={{ color: '#2c3e50', whiteSpace: 'pre-wrap' }}>
+                                        {job.description || 'No description provided.'}
                                     </div>
                                 </div>
                                 
                                 <div className="job-footer">
                                     <span>
-                                        📅 Posted: {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}
+                                        Posted: {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'Recently'}
                                     </span>
                                     <div className="action-buttons">
                                         <button 
                                             onClick={() => handleEdit(job)}
                                             className="action-button btn-edit"
                                         >
-                                            ✏️ Edit
+                                            Edit
                                         </button>
                                         <button 
                                             onClick={() => handleDelete(job._id)}
                                             disabled={deletingId === job._id}
                                             className="action-button btn-delete"
                                         >
-                                            {deletingId === job._id ? '⏳ Deleting...' : '🗑️ Delete'}
+                                            {deletingId === job._id ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                        <button 
+                                            onClick={() => navigate(`/job/${job._id}/applicants`)}
+                                            className="action-button btn-applicants"
+                                            style={{ backgroundColor: '#4834d4', color: 'white', border: 'none' }}
+                                        >
+                                            Applicants
                                         </button>
                                     </div>
                                 </div>

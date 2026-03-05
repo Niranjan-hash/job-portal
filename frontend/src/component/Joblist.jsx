@@ -1,28 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { FiMapPin, FiBriefcase } from 'react-icons/fi';
 import './joblist.css';
 
-function Joblist({ showSearchbar, hideSearchbar }) {
-  const [joblist, setJoblist] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar }) {
   const [selectedJob, setSelectedJob] = useState(null);
+  const [applying, setApplying] = useState(false);
+  const [applyMsg, setApplyMsg] = useState('');
 
-  useEffect(() => {
-    fetchJobs();
-  }, []);
-
-  const fetchJobs = async () => {
+  const applyForJob = async (jobId) => {
     try {
-      setLoading(true);
-      setError('');
-      const response = await axios.get("http://localhost:5000/api/jobs");
-      setJoblist(response.data);
+      setApplying(true);
+      setApplyMsg('');
+      const token = localStorage.getItem('token');
+      
+      if (!token) {
+        setApplyMsg('Please login to apply');
+        return;
+      }
+
+      // Fetch user's resume details first
+      let resumeUrl = '';
+      try {
+        const resumeRes = await axios.get('http://localhost:5000/resume/user-resume', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (resumeRes.data.success && resumeRes.data.data) {
+          resumeUrl = resumeRes.data.data.fileName;
+        }
+      } catch (err) {
+        console.log('No resume found to attach');
+      }
+
+      const response = await axios.post(
+        `http://localhost:5000/api/applications/apply/${jobId}`,
+        { resumeUrl }, 
+        {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }
+      );
+
+      if (response.data.success) {
+        setApplyMsg('Applied successfully!');
+      }
     } catch (err) {
-      setError("Failed to load jobs. Please try again.");
-      console.error('Error fetching jobs:', err);
+      console.error(err);
+      setApplyMsg((err.response?.data?.message || 'Failed to apply'));
     } finally {
-      setLoading(false);
+      setApplying(false);
     }
   };
 
@@ -33,45 +58,70 @@ function Joblist({ showSearchbar, hideSearchbar }) {
           className="back-btn" 
           onClick={() => {
             setSelectedJob(null);
+            setApplyMsg('');
             showSearchbar();
           }}
         >
-          ⬅ Back to Jobs
+          ← Back to Jobs
         </button>
         <div className="job_detail">
-          <h1 className="title">{selectedJob.title}</h1>
+          <h1>{selectedJob.title}</h1>
+          <div className="company-name" style={{ fontSize: '1.2rem', color: 'var(--text-muted)', marginTop: '-20px' }}>{selectedJob.company}</div>
           
-          <p>
-            <b>🏢 Company:</b> 
-            <span>{selectedJob.company}</span>
-          </p>
+          <div className="job-meta-grid">
+            <div className="meta-item">
+              <b>Location</b>
+              <span>{selectedJob.location}</span>
+            </div>
+            <div className="meta-item">
+              <b>Job Type</b>
+              <span>{selectedJob.type}</span>
+            </div>
+            <div className="meta-item">
+              <b>Salary Range</b>
+              <span className="salary-value">{selectedJob.salary || "Not specified"}</span>
+            </div>
+            <div className="meta-item">
+              <b>Posted On</b>
+              <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          {selectedJob.skills && (
+            <div className="skills-section">
+              <b style={{ display: 'block', marginBottom: '10px' }}>Required Skills</b>
+              <div className="skills-tags">
+                {selectedJob.skills.split(',').map((skill, i) => (
+                  <span key={i} className="skill-tag">{skill.trim()}</span>
+                ))}
+              </div>
+            </div>
+          )}
           
-          <p>
-            <b>📍 Location:</b> 
-            <span>{selectedJob.location}</span>
-          </p>
-          
-          <p>
-            <b>🕐 Type:</b> 
-            <span>{selectedJob.type}</span>
-          </p>
-          
-          <p>
-            <b>💰 Salary:</b> 
-            <span className="salary-value">{selectedJob.salary || "Not specified"}</span>
-          </p>
-          
-          <p><b>📝 Description:</b></p>
-          <div className="description-content">
-            {selectedJob.description}
+          <div className="description-section">
+             <b style={{ display: 'block', marginBottom: '10px' }}>Job Description</b>
+             <div className="description-content">
+               {selectedJob.description}
+             </div>
           </div>
           
-          <p>
-            <b>📅 Posted:</b> 
-            <span>{new Date(selectedJob.createdAt).toLocaleDateString()}</span>
-          </p>
-          
-          <button className="apply-btn">🚀 Apply Now</button>
+          {selectedJob.companyContact && (
+            <div className="contact-info" style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '8px' }}>
+              <b style={{ color: 'var(--text-light)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Recruiter Contact</b>
+              <div style={{ fontWeight: '600', marginTop: '5px' }}>{selectedJob.companyContact}</div>
+            </div>
+          )}
+
+          <div className="action-area" style={{ marginTop: '20px' }}>
+             <button 
+                className="apply-btn" 
+                onClick={() => applyForJob(selectedJob._id)}
+                disabled={applying}
+              >
+                {applying ? 'Applying...' : 'Apply for this Position'}
+              </button>
+              {applyMsg && <p className="apply-msg" style={{ marginTop: '15px', fontWeight: '600', color: applyMsg.includes('success') ? 'var(--accent)' : 'var(--danger)' }}>{applyMsg}</p>}
+          </div>
         </div>
       </div>
     );
@@ -79,33 +129,29 @@ function Joblist({ showSearchbar, hideSearchbar }) {
 
   return (
     <div className="joblist-container">
-      <div className="joblist-header">
-        <h1>💼 Available Jobs</h1>
-      </div>
-
+      {/* Removed "Available Jobs" Header as requested */}
+      
       {loading && (
         <div className="loading-message">
           <div className="loader"></div>
-          ⏳ Loading jobs...
+          Loading jobs...
         </div>
       )}
       
       {error && (
         <div className="error-message">
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
-      <button 
-        className="refresh-btn" 
-        onClick={fetchJobs}
-        disabled={loading}
-      >
-        🔄 Refresh Jobs
-      </button>
+      {!loading && jobs.length === 0 && (
+         <div style={{textAlign: 'center', margin: '20px', color: '#666'}}>
+           No jobs found. Try adjusting your search.
+         </div>
+      )}
 
       <div className="jobs-grid">
-        {joblist.map(job => (
+        {jobs.map(job => (
           <div
             className="job-card"
             key={job._id}
@@ -114,32 +160,35 @@ function Joblist({ showSearchbar, hideSearchbar }) {
               hideSearchbar();
             }}
           >
-            <h3>{job.title}</h3>
+            <h3 onClick={(e) => {
+              e.stopPropagation();
+              if (onSearchChange) onSearchChange(job.title);
+            }}>{job.title}</h3>
             
+            <div className="company-name">{job.company}</div>
+
             <div className="info-row">
-              <span className="info-label">🏢 Company:</span>
-              <span className="info-value">{job.company}</span>
+              <FiMapPin /> {job.location}
             </div>
             
             <div className="info-row">
-              <span className="info-label">📍 Location:</span>
-              <span className="info-value">{job.location}</span>
+              <FiBriefcase /> {job.type}
             </div>
             
-            <div className="info-row">
-              <span className="info-label">🕐 Type:</span>
-              <span className="info-value">{job.type}</span>
+            <div className="salary-tag">
+              {job.salary || 'Salary Not Specified'}
             </div>
-            
-            <div className="info-row">
-              <span className="info-label">💰 Salary:</span>
-              <span className="info-value salary-value">
-                {job.salary || 'Not specified'}
-              </span>
-            </div>
+
+            {job.skills && (
+              <div className="card-skills">
+                {job.skills.split(',').slice(0, 3).map((skill, i) => (
+                  <span key={i} className="skill-tag skill-tag-sm">{skill.trim()}</span>
+                ))}
+              </div>
+            )}
             
             <button className="view-details-btn">
-              👁️ View Details
+              View Details
             </button>
           </div>
         ))}

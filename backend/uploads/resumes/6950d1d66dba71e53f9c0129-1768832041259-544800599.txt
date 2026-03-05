@@ -1,0 +1,24 @@
+express require
+call express
+listen(port)
+object.get,put,post...
+router 
+export
+require
+model
+mongoose
+new variable sechema{
+     object
+}
+variable = mongoose.model("variable",actual model)
+module.export = variable
+
+
+server 
+const variable = require('filename')
+
+
+const variable = modelname.create()
+verify by using json(product)
+
+mongoose.connect()

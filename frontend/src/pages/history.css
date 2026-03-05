@@ -3,10 +3,11 @@
 /* Main Container */
 .history-page {
     width: 100vw;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #243B55 0%, #4B79A1 100%);
     margin: 0 auto;
     padding: 30px 20px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
 }
 
 /* Header */
@@ -16,13 +17,13 @@
     align-items: center;
     margin-bottom: 30px;
     padding-bottom: 20px;
-    border-bottom: 3px solid #e0e0e0;
+    border-bottom: 3px solid rgba(255, 255, 255, 0.1);
     flex-wrap: wrap;
     gap: 20px;
 }
 
 .page-title {
-    color: #2c3e50;
+    color: white;
     font-size: 2.2rem;
     margin: 0;
     display: flex;
@@ -199,6 +200,42 @@
     color: #27ae60;
     font-weight: 600;
 }
+
+/* Skills */
+.history-skills {
+    margin: 12px 0;
+}
+
+.history-skills .info-label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.skills-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-tag {
+    display: inline-block;
+    padding: 4px 14px;
+    background: linear-gradient(135deg, #667eea22, #764ba222);
+    color: #4a3aaa;
+    border: 1.5px solid #667eea55;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: all 0.2s ease;
+}
+
+.skill-tag:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+}
+
 
 .job-description-box {
     background: #f8f9fa;

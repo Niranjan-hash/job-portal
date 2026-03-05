@@ -274,4 +274,95 @@ router.post("/resend-otp", async (req, res) => {
   }
 });
 
+const { authenticateToken } = require('../middleware/auth');
+const Profile = require('../model/profile');
+const JobDetail = require('../model/jobdetail');
+const Application = require('../model/application');
+const Resume = require('../model/resumeschema');
+const Notification = require('../model/notification');
+
+// GET CURRENT USER SETTINGS
+router.get("/me", authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select("-password");
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    
+    res.json({
+      success: true,
+      user: {
+        emailNotifications: user.emailNotifications,
+        profilePublic: user.profilePublic
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+
+// UPDATE PREFERENCES
+router.patch("/update-preferences", authenticateToken, async (req, res) => {
+  try {
+    const { emailNotifications, profilePublic } = req.body;
+    const updateData = {};
+    
+    if (typeof emailNotifications === 'boolean') updateData.emailNotifications = emailNotifications;
+    if (typeof profilePublic === 'boolean') updateData.profilePublic = profilePublic;
+    
+    const user = await User.findByIdAndUpdate(
+      req.userId,
+      { $set: updateData },
+      { new: true }
+    );
+    
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    
+    res.json({
+      success: true,
+      message: "Preferences updated",
+      user: {
+        emailNotifications: user.emailNotifications,
+        profilePublic: user.profilePublic
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to update preferences" });
+  }
+});
+
+// CHANGE PASSWORD
+router.post("/change-password", authenticateToken, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(401).json({ success: false, message: "Incorrect current password" });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ success: true, message: "Password updated" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to change password" });
+  }
+});
+
+// DELETE ACCOUNT
+router.delete("/delete-account", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.userId;
+    await Profile.deleteOne({ userId });
+    await JobDetail.deleteMany({ postedby: userId.toString() });
+    await Application.deleteMany({ userId });
+    await Resume.deleteOne({ userId });
+    await Notification.deleteMany({ recipientId: userId });
+    await User.findByIdAndDelete(userId);
+
+    res.json({ success: true, message: "Account deleted" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Failed to delete account" });
+  }
+});
+
 module.exports = router;

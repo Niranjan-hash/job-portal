@@ -18,6 +18,14 @@ const userSchema = new mongoose.Schema({
   isVerified: {  // ✅ camelCase (consistent with PendingUser)
     type: Boolean,
     default: false 
+  },
+  emailNotifications: {
+    type: Boolean,
+    default: true
+  },
+  profilePublic: {
+    type: Boolean,
+    default: true
   }
 }, { timestamps: true });
 

@@ -1,6 +1,17 @@
 import axios from 'axios';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+    FiBriefcase, 
+    FiMapPin, 
+    FiCheckSquare, 
+    FiStar, 
+    FiAlignLeft, 
+    FiPhone, 
+    FiArrowLeft,
+    FiCheckCircle,
+    FiPlusSquare
+} from 'react-icons/fi';
 import './recruiter.css';
 
 function Recruiter() {
@@ -12,9 +23,11 @@ function Recruiter() {
         title: '',
         company: '',
         location: '',
-        type: '',
+        type: 'full time',
         salary: '',
-        description: ''
+        skills: '',
+        description: '',
+        companyContact: ''
     });
 
     useEffect(() => {
@@ -44,7 +57,7 @@ function Recruiter() {
             console.log('Posting job:', job);
             
             const response = await axios.post(
-                'http://localhost:5000/api/postjob',
+                'http://localhost:5000/api/jobs',
                 job,
                 {
                     headers: {
@@ -54,8 +67,6 @@ function Recruiter() {
                 }
             );
 
-            console.log('Response:', response.data);
-
             if (response.data.success) {
                 setSuccess(true);
                 setTimeout(() => {
@@ -64,11 +75,13 @@ function Recruiter() {
                         title: '',
                         company: '',
                         location: '',
-                        type: '',
+                        type: 'full time',
                         salary: '',
-                        description: ''
+                        skills: '',
+                        description: '',
+                        companyContact: ''
                     });
-                }, 2000);
+                }, 3000);
             } else {
                 setError(response.data.message || 'Failed to post job');
             }
@@ -89,74 +102,124 @@ function Recruiter() {
     return (
         <div className="recruiter-page">
             <div className="recruiter-container">
+                <button 
+                   onClick={() => navigate('/dashboard')} 
+                   className="back-nav-btn"
+                   style={{
+                       position: 'absolute',
+                       top: '30px',
+                       left: '30px',
+                       background: 'rgba(255, 255, 255, 0.8)',
+                       border: '1px solid #e2e8f0',
+                       color: 'var(--recruiter-text)',
+                       display: 'flex',
+                       alignItems: 'center',
+                       gap: '8px',
+                       cursor: 'pointer',
+                       fontSize: '0.85rem',
+                       padding: '10px 18px',
+                       borderRadius: '30px',
+                       fontWeight: '700',
+                       boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+                       zIndex: 10
+                   }}
+                >
+                    <FiArrowLeft /> Back to Dashboard
+                </button>
+
                 {loading && (
                     <div className="loading-overlay">
                         <div className="loading-spinner"></div>
                     </div>
                 )}
 
-                <h2 className="page-title">📝 Post New Job</h2>
+                <div className="page-header" style={{ textAlign: 'center', marginBottom: '40px' }}>
+                    <h2 className="page-title" style={{ margin: 0, border: 'none', padding: 0 }}>Post New Job</h2>
+                    <p style={{ color: '#94a3b8', marginTop: '10px' }}>Reach the best talent for your team</p>
+                </div>
 
-                {error && (
-                    <div className="error-alert">
-                        ⚠️ {error}
-                    </div>
-                )}
+                {error && <div className="error-alert">{error}</div>}
 
                 {success ? (
                     <div className="success-message">
-                        <div className="success-icon">✅</div>
+                        <div className="success-icon"><FiCheckCircle /></div>
                         <p className="success-text">Job posted successfully!</p>
-                        <button 
-                            className="history-btn"
-                            onClick={() => navigate('/history')}
-                        >
-                            📋 View Your Jobs
-                        </button>
+                        <div className="form-buttons">
+                            <button 
+                                className="submit-btn"
+                                onClick={() => navigate('/history')}
+                            >
+                                Manage Job Postings
+                            </button>
+                        </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="recruiter-form">
                         <div className="form-group">
-                            <input
-                                type="text"
-                                placeholder="Job Title *"
-                                name="title"
-                                value={job.title}
-                                onChange={handleChange}
-                                required
-                                disabled={loading}
-                                className="form-input"
-                            />
+                            <label className="form-label">Job Title</label>
+                            <div className="input-container">
+                                <input
+                                    type="text"
+                                    placeholder="Software Engineer"
+                                    name="title"
+                                    value={job.title}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={loading}
+                                    className="form-input"
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
-                            <input
-                                type="text"
-                                placeholder="Company Name *"
-                                name="company"
-                                value={job.company}
-                                onChange={handleChange}
-                                required
-                                disabled={loading}
-                                className="form-input"
-                            />
+                            <label className="form-label">Company Name</label>
+                            <div className="input-container">
+                                <input
+                                    type="text"
+                                    placeholder="Tech Corp"
+                                    name="company"
+                                    value={job.company}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={loading}
+                                    className="form-input"
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
-                            <input
-                                type="text"
-                                placeholder="Location *"
-                                name="location"
-                                value={job.location}
-                                onChange={handleChange}
-                                required
-                                disabled={loading}
-                                className="form-input"
-                            />
+                            <label className="form-label">Location</label>
+                            <div className="input-container">
+                                <input
+                                    type="text"
+                                    placeholder="Remote / City, Country"
+                                    name="location"
+                                    value={job.location}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={loading}
+                                    className="form-input"
+                                />
+                            </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Job Type *</label>
+                            <label className="form-label">Salary Range</label>
+                            <div className="input-container">
+                                <input
+                                    type="text"
+                                    placeholder="e.g. 80k - 120k"
+                                    name="salary"
+                                    value={job.salary}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                    className="form-input"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="form-group full-width">
+                            <label className="form-label">Job Type</label>
                             <div className="radio-group">
                                 <label className={`radio-option ${job.type === 'full time' ? 'selected' : ''}`}>
                                     <input
@@ -183,21 +246,25 @@ function Recruiter() {
                             </div>
                         </div>
 
-                        <div className="form-group">
-                            <input
-                                type="text"
-                                placeholder="Salary (e.g., $50,000)"
-                                name="salary"
-                                value={job.salary}
-                                onChange={handleChange}
-                                disabled={loading}
-                                className="form-input"
-                            />
+                        <div className="form-group full-width">
+                            <label className="form-label">Required Skills</label>
+                            <div className="input-container">
+                                <input
+                                    type="text"
+                                    placeholder="React, Node.js, TypeScript..."
+                                    name="skills"
+                                    value={job.skills}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                    className="form-input"
+                                />
+                            </div>
                         </div>
 
-                        <div className="form-group">
+                        <div className="form-group full-width">
+                            <label className="form-label">Job Description</label>
                             <textarea
-                                placeholder="Job Description"
+                                placeholder="Describe the role and responsibilities..."
                                 name="description"
                                 value={job.description}
                                 onChange={handleChange}
@@ -211,20 +278,36 @@ function Recruiter() {
                             </div>
                         </div>
 
+                        <div className="form-group full-width">
+                            <label className="form-label">Contact Details</label>
+                            <div className="input-container">
+                                <textarea
+                                    placeholder="Email or phone number for applicants..."
+                                    name="companyContact"
+                                    value={job.companyContact}
+                                    onChange={handleChange}
+                                    disabled={loading}
+                                    rows="2"
+                                    className="form-textarea"
+                                    style={{ minHeight: '80px' }}
+                                />
+                            </div>
+                        </div>
+
                         <div className="form-buttons">
                             <button
                                 type="submit"
                                 disabled={loading}
                                 className="submit-btn"
                             >
-                                {loading ? '⏳ Posting...' : '🚀 Post Job'}
+                                {loading ? 'Publishing...' : 'Publish Job Posting'}
                             </button>
                             <button 
                                 type="button"
                                 onClick={() => navigate('/history')}
                                 className="history-btn"
                             >
-                                📋 View History
+                                View History
                             </button>
                         </div>
                     </form>
