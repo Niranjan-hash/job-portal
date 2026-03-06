@@ -18,7 +18,8 @@ import {
   FiUsers,
   FiSearch,
   FiX,
-  FiMapPin
+  FiMapPin,
+  FiFolder
 } from "react-icons/fi";
 
 function Dashboard() {
@@ -164,28 +165,17 @@ function Dashboard() {
       const profileData = response.data.profile || response.data.user || response.data;
       
       let profilePicture = "";
-      const picData = profileData.profilePic || profileData.profilePicture;
+      const picData = profileData.profilePic;
       
       if (picData) {
         if (typeof picData === 'string') {
-          if (picData.startsWith('http')) {
-            profilePicture = picData;
-          } else if (picData.startsWith('/uploads')) {
-            profilePicture = `http://localhost:5000${picData}`;
-          } else {
-            profilePicture = `http://localhost:5000/uploads/profile-pics/${picData}`;
-          }
-          setShowProfilePic(true);
-        } else if (typeof picData === 'object') {
-          if (picData.url) {
-            profilePicture = picData.url.startsWith('http') ? picData.url : `http://localhost:5000${picData.url}`;
-          } else if (picData.filename) {
-            profilePicture = `http://localhost:5000/uploads/profile-pics/${picData.filename}`;
-          } else if (picData.path) {
-            profilePicture = picData.path.startsWith('http') ? picData.path : `http://localhost:5000/${picData.path}`;
-          }
-          setShowProfilePic(true);
+          profilePicture = picData.startsWith('http') ? picData : `http://localhost:5000${picData.startsWith('/uploads') ? '' : '/uploads/profile-pics/'}${picData}`;
+        } else if (picData.filename) {
+          profilePicture = `http://localhost:5000/uploads/profile-pics/${picData.filename}`;
+        } else if (picData.url) {
+          profilePicture = picData.url.startsWith('http') ? picData.url : `http://localhost:5000${picData.url}`;
         }
+        setShowProfilePic(true);
       }
 
       setUserData({
@@ -278,6 +268,10 @@ function Dashboard() {
               <FiFileText className="menu-item-icon" />
               <span>{userData.hasResume ? 'View Resume' : 'Upload Resume'}</span>
             </div>
+            <div className="menu-item" onClick={() => { navigate('/showroom'); setIsMenuOpen(false); }}>
+              <FiFolder className="menu-item-icon" />
+              <span>Project Showroom</span>
+            </div>
             <div className="menu-item" onClick={handleRecruiterHistory}>
               <FiClock className="menu-item-icon" />
               <span>Recruiter History</span>
@@ -323,7 +317,7 @@ function Dashboard() {
             
             <div className="header-center">
                {isSearchExpanded && (
-                 <form onSubmit={handleSearch} className="search-form">
+                 <form onSubmit={handleSearch} className="search-form active">
                     <div className="search-bar-container">
                       <FiSearch className="search-icon-inside" />
                       <input 
@@ -336,9 +330,8 @@ function Dashboard() {
                         className="search-input-field"
                       />
                       
-                      <div className="search-divider"></div>
-
-                      <div className="location-input-container">
+                      <div className="location-input-section">
+                        <div className="search-divider"></div>
                         <FiMapPin className="location-icon-inside" />
                         <input 
                           type="text" 
@@ -347,9 +340,9 @@ function Dashboard() {
                           value={filters.location}
                           onChange={handleFilterChange}
                           className="location-input-field"
-                          list="location-suggestions"
+                          list="location-list"
                         />
-                        <datalist id="location-suggestions">
+                        <datalist id="location-list">
                           {uniqueLocations.map(loc => (
                             <option key={loc} value={loc} />
                           ))}
@@ -358,29 +351,30 @@ function Dashboard() {
 
                       <button 
                         type="button" 
-                        className="search-clear-btn"
+                        className="search-close-btn-pro"
                         onClick={() => {
                           setIsSearchExpanded(false);
-                          setFilters({ ...filters, search: '', location: '' });
+                          setFilters({ search: '', location: '' });
                         }}
+                        aria-label="Close search"
                       >
-                        <FiX />
+                        <FiX size={24} strokeWidth={3} />
                       </button>
                     </div>
-                 </form>
+                  </form>
                )}
             </div>
             
             <div className="header-right">
                {!isSearchExpanded && (
-                 <div 
-                    className="search-toggle-btn"
-                    onClick={() => setIsSearchExpanded(true)} 
-                    title="Search"
-                    style={{ color: 'var(--text-main)', border: '1px solid #e2e8f0', background: 'white' }}
-                 >
-                    <FiSearch />
-                 </div>
+                <div 
+                  className="search-toggle-btn"
+                  onClick={() => setIsSearchExpanded(true)} 
+                  title="Search"
+                  style={{ color: '#4f46e5', border: '1px solid rgba(0,0,0,0.1)', background: 'white' }}
+                >
+                  <FiSearch />
+                </div>
                )}
 
               <button className="recruiter-btn" onClick={handleSwitchToRecruiter}>Recruiter Mode</button>

@@ -2,11 +2,11 @@
 
 /* Main Container */
 .history-page {
-    width: 100vw;
-    background: linear-gradient(135deg, #243B55 0%, #4B79A1 100%);
+    width: 100%;
+    background-color: var(--bg-main);
     margin: 0 auto;
-    padding: 30px 20px;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 40px 20px;
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
 }
 
@@ -54,9 +54,9 @@
 }
 
 .btn-new-job {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--primary-gradient);
     color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
 }
 
 .btn-new-job:hover {
@@ -65,9 +65,9 @@
 }
 
 .btn-dashboard {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: var(--secondary-gradient);
     color: white;
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+    box-shadow: 0 4px 15px rgba(236, 72, 153, 0.4);
 }
 
 .btn-dashboard:hover {
@@ -134,19 +134,19 @@
 
 /* Job Card */
 .job-item {
-    background: white;
-    border-radius: 15px;
-    padding: 25px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.4s ease;
-    border: 1px solid #e8e8e8;
+    background: var(--bg-surface);
+    border-radius: var(--border-radius);
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+    transition: var(--transition);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     position: relative;
     overflow: hidden;
 }
 
 .job-item:hover {
     transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .job-item::before {
@@ -156,7 +156,7 @@
     left: 0;
     width: 6px;
     height: 100%;
-    background: linear-gradient(to bottom, #667eea, #764ba2);
+    background: var(--primary-gradient);
 }
 
 /* View Mode */
@@ -165,12 +165,13 @@
 }
 
 .job-title {
-    color: #2c3e50;
+    color: #0f172a; /* Sharp Black Title */
     margin-top: 0;
     margin-bottom: 20px;
-    font-size: 1.5rem;
+    font-size: 1.55rem;
     padding-bottom: 12px;
-    border-bottom: 2px solid #f0f0f0;
+    border-bottom: 2px solid #f1f5f9;
+    font-weight: 800;
 }
 
 .job-info {
@@ -186,10 +187,11 @@
 }
 
 .info-label {
-    color: #2c3e50;
-    font-weight: 600;
-    min-width: 120px;
+    color: #475569;
+    font-weight: 700;
+    min-width: 100px;
     display: inline-block;
+    font-size: 0.9rem;
 }
 
 .info-value {
@@ -238,13 +240,14 @@
 
 
 .job-description-box {
-    background: #f8f9fa;
-    padding: 16px;
-    border-radius: 10px;
+    background: #f8fafc;
+    padding: 18px;
+    border-radius: 12px;
     margin: 20px 0;
-    border-left: 4px solid #3498db;
-    font-size: 15px;
+    border-left: 5px solid var(--primary);
+    font-size: 0.95rem;
     line-height: 1.7;
+    color: #334155;
 }
 
 .job-footer {
@@ -266,13 +269,14 @@
 }
 
 .edit-title {
-    color: #e67e22;
+    color: #000000; /* Force Black */
     margin-top: 0;
     margin-bottom: 25px;
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     display: flex;
     align-items: center;
     gap: 10px;
+    font-weight: 800;
 }
 
 .edit-form {
@@ -285,27 +289,42 @@
     width: 100%;
 }
 
+.form-field label {
+    display: block;
+    margin-bottom: 8px;
+    color: #000000; /* Force Black */
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
 .form-input {
     padding: 14px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
     font-size: 15px;
     transition: all 0.3s ease;
     width: 100%;
     box-sizing: border-box;
     font-family: inherit;
+    color: #000000; /* Force Black */
+    background: #ffffff;
+    font-weight: 500;
+}
+
+.form-input::placeholder {
+    color: #64748b; /* Darker placeholder for visibility */
 }
 
 .form-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-textarea {
     padding: 14px;
-    border: 2px solid #ddd;
-    border-radius: 8px;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
     font-size: 15px;
     transition: all 0.3s ease;
     width: 100%;
@@ -313,11 +332,18 @@
     resize: vertical;
     min-height: 120px;
     font-family: inherit;
+    color: #000000; /* Force Black */
+    background: #ffffff;
+    font-weight: 500;
+}
+
+.form-textarea::placeholder {
+    color: #64748b;
 }
 
 .form-textarea:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: #6366f1;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
@@ -332,8 +358,8 @@
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    color: #34495e;
-    font-weight: 500;
+    color: #000000; /* Force Black */
+    font-weight: 600;
 }
 
 .radio-option input[type="radio"] {

@@ -36,14 +36,16 @@
     right: 0;
     width: 380px;
     height: 550px;
-    background: white;
+    background: rgba(255, 255, 255, 0.9); /* Glass effect */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
     border-radius: var(--border-radius);
-    box-shadow: var(--shadow-xl);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
     display: flex;
     flex-direction: column;
     overflow: hidden;
     animation: slideIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    border: 1px solid #e2e8f0;
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 @keyframes slideIn {
@@ -95,7 +97,7 @@
     flex: 1;
     padding: 25px;
     overflow-y: auto;
-    background: #f8fafc;
+    background: rgba(248, 250, 252, 0.5); /* Lighter semi-transparent */
     display: flex;
     flex-direction: column;
     gap: 15px;
@@ -115,11 +117,12 @@
 
 .message.bot {
     align-self: flex-start;
-    background: white;
-    color: var(--text-main);
-    border: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.95);
+    color: #0f172a; /* Deep Slate for maximum visibility */
+    border: 1px solid rgba(226, 232, 240, 0.8);
     border-bottom-left-radius: 4px;
-    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.03);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    font-weight: 600; /* Bolder text for visibility */
 }
 
 .message.user {
@@ -132,9 +135,9 @@
 
 /* Typing Indicator */
 .typing {
-    font-size: 0.75rem;
-    color: var(--text-light);
-    font-weight: 600;
+    font-size: 0.8rem;
+    color: #1e293b; /* Darker slate for visibility */
+    font-weight: 700;
     margin-left: 5px;
 }
 
@@ -154,9 +157,11 @@
     border-radius: var(--border-radius-sm);
     padding: 12px 16px;
     outline: none;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     transition: var(--transition);
     background: #f8fafc;
+    color: #000000; /* Black text for AI input */
+    font-weight: 700;
 }
 
 .chat-input-area input:focus {
@@ -182,9 +187,12 @@
 
 .send-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
 
-/* Scrollbar Styling */
-.chat-messages::-webkit-scrollbar { width: 4px; }
-.chat-messages::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+/* Scrollbar Styling - Hidden */
+.chat-messages::-webkit-scrollbar { display: none; }
+.chat-messages {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
 
 @media (max-width: 480px) {
     .chat-window {

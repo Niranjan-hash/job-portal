@@ -7,12 +7,47 @@ function Resume() {
     const [resume, setResume] = useState(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
-    const [userResume, setUserResume] = useState(null); // To store fetched resume data
+    const [userResume, setUserResume] = useState(null);
+    const [myScores, setMyScores] = useState([]);
 
     // Fetch user's existing resume on component mount
     useEffect(() => {
         fetchUserResume();
+        fetchMyScores();
     }, []);
+
+    const fetchMyScores = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('http://localhost:5000/api/applications/my-applications', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.data.success) {
+                // Show all applications to allow manual triggering of score
+                setMyScores(response.data.applications);
+            }
+        } catch (err) {
+            console.error("Failed to fetch compatibility scores", err);
+        }
+    };
+
+    const handleGenerateScore = async (applicationId) => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`http://localhost:5000/api/ai/score/${applicationId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.data.success) {
+                setSuccess(`AI Analysis completed: ${response.data.score}%`);
+                fetchMyScores(); // Refresh scores
+                setTimeout(() => setSuccess(''), 5000);
+            }
+        } catch (err) {
+            console.error(err);
+            setError("Failed to generate AI score");
+        }
+    };
 
     const fetchUserResume = async () => {
         try {
@@ -184,6 +219,60 @@ function Resume() {
                             >
                                 View Resume
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* AI COMPATIBILITY SCORES */}
+                {myScores.length > 0 && (
+                    <div className="compatibility-section" style={{ marginTop: '30px', borderTop: '1px solid #eee', paddingTop: '20px', marginBottom: '30px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                            <h3 style={{ margin: 0, color: '#0f172a' }}>Job Compatibility Analysis</h3>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b', fontStyle: 'italic' }}>Based on your latest uploaded resume</span>
+                        </div>
+                        <div className="scores-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            {myScores.map(scoreItem => (
+                                <div key={scoreItem._id} style={{
+                                    display: 'flex', 
+                                    justifyContent: 'space-between', 
+                                    alignItems: 'center', 
+                                    padding: '15px', 
+                                    backgroundColor: '#f8fafc', 
+                                    borderRadius: '12px',
+                                    borderLeft: `5px solid ${scoreItem.aiScore >= 80 ? '#2ecc71' : scoreItem.aiScore >= 50 ? '#f1c40f' : '#e74c3c'}`
+                                }}>
+                                    <div>
+                                        <h4 style={{ margin: 0, color: '#1e293b' }}>{scoreItem.jobTitle}</h4>
+                                        <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#64748b' }}>{scoreItem.company}</p>
+                                    </div>
+                                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                                        <div style={{ 
+                                            fontSize: '1.25rem', 
+                                            fontWeight: '800', 
+                                            color: scoreItem.aiScore >= 80 ? '#2ecc71' : scoreItem.aiScore >= 50 ? '#f1c40f' : '#e74c3c' 
+                                        }}>
+                                            {scoreItem.aiFeedback ? `${scoreItem.aiScore}%` : 'N/A'}
+                                        </div>
+                                        <button 
+                                            onClick={() => handleGenerateScore(scoreItem._id)}
+                                            style={{
+                                                padding: '4px 10px',
+                                                backgroundColor: '#6366f1',
+                                                color: 'white',
+                                                border: 'none',
+                                                borderRadius: '6px',
+                                                fontSize: '0.65rem',
+                                                fontWeight: '700',
+                                                cursor: 'pointer',
+                                                textTransform: 'uppercase'
+                                            }}
+                                        >
+                                            {scoreItem.aiFeedback ? 'Recalculate' : 'Analyze Now'}
+                                        </button>
+                                        <span style={{ fontSize: '0.65rem', fontWeight: '700', textTransform: 'uppercase', color: '#94a3b8' }}>AI Match Score</span>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}

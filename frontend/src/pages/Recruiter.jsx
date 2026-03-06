@@ -109,7 +109,7 @@ function Recruiter() {
                        position: 'absolute',
                        top: '30px',
                        left: '30px',
-                       background: 'rgba(255, 255, 255, 0.8)',
+                       background: 'transparent',
                        border: '1px solid #e2e8f0',
                        color: 'var(--recruiter-text)',
                        display: 'flex',

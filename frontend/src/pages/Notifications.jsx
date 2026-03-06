@@ -14,13 +14,46 @@ import {
 import './notification.css'
 
 const Notifications = () => {
+  const [apiUrl] = useState('http://localhost:5000');
+
+  const getFullImageUrl = (imageData) => {
+    if (!imageData) return '';
+    if (typeof imageData === 'string') {
+      if (imageData.startsWith('http')) return imageData;
+      if (imageData.startsWith('/uploads')) return `${apiUrl}${imageData}`;
+      return `${apiUrl}/uploads/profile-pics/${imageData}`;
+    }
+    if (imageData?.filename) {
+      return `${apiUrl}/uploads/profile-pics/${imageData.filename}`;
+    }
+    return '';
+  };
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userProfilePic, setUserProfilePic] = useState('');
 
   useEffect(() => {
+    fetchUserData();
     fetchNotifications();
   }, []);
+
+  const fetchUserData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        const response = await axios.get(`${apiUrl}/profile/my-profile`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const profileData = response.data.profile || response.data.user || response.data;
+        if (profileData.profilePic) {
+          setUserProfilePic(profileData.profilePic);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
 
   const fetchNotifications = async () => {
     try {
@@ -127,8 +160,18 @@ const Notifications = () => {
                 </div>
                 
                 <div className="card-center">
-                  <div className="card-meta">
-                    <span className="type-label">{notification.type.replace('_', ' ')}</span>
+                  <div className="card-top-aligned">
+                    {notification.data?.senderPic || (notification.type === 'STATUS_UPDATE' && userProfilePic) ? (
+                      <img src={getFullImageUrl(notification.data?.senderPic || userProfilePic)} alt="Sender" className="sender-avatar-small" />
+                    ) : (
+                      <div className="sender-avatar-placeholder">
+                        {notification.data?.senderName ? notification.data.senderName[0].toUpperCase() : 'U'}
+                      </div>
+                    )}
+                    <div className="sender-info-group">
+                      <span className="type-label">{notification.type.replace('_', ' ')}</span>
+                      <span className="sender-name">{notification.data?.senderName || 'System'}</span>
+                    </div>
                     <span className="time-ago">
                       <FiClock /> {new Date(notification.createdAt).toLocaleDateString()}
                     </span>

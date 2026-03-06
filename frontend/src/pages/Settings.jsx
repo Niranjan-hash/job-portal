@@ -41,6 +41,11 @@ const Settings = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [confirmDeleteText, setConfirmDeleteText] = useState('');
 
+  // Admin states
+  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [adminCreds, setAdminCreds] = useState({ userid: '', password: '' });
+  const [isAdminLoggingIn, setIsAdminLoggingIn] = useState(false);
+
   useEffect(() => {
     fetchUserData();
   }, []);
@@ -129,11 +134,29 @@ const Settings = () => {
     }
   };
 
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setIsAdminLoggingIn(true);
+    try {
+      const response = await axios.post('http://localhost:5000/api/admin/login', adminCreds);
+      if (response.data.success) {
+        localStorage.setItem('adminToken', response.data.token);
+        toast.success(response.data.message);
+        setShowAdminModal(false);
+        navigate('/admin');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Admin login failed");
+    } finally {
+      setIsAdminLoggingIn(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="settings-loader-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-main)' }}>
+      <div className="settings-loader-container" style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#ffffff' }}>
         <div className="pro-spinner"></div>
-        <p style={{ marginTop: '20px', color: 'var(--text-light)', fontWeight: '600' }}>Initializing Secure Settings...</p>
+        <p style={{ marginTop: '20px', color: '#475569', fontWeight: '600' }}>Initializing Secure Settings...</p>
       </div>
     );
   }
@@ -178,6 +201,9 @@ const Settings = () => {
         </nav>
 
         <div className="sidebar-bottom">
+          <button onClick={() => setShowAdminModal(true)} className="admin-portal-trigger" style={{ marginBottom: '15px' }}>
+            <FiShield /> <span>Admin Portal</span>
+          </button>
           <button onClick={() => navigate('/dashboard')} className="back-to-dash">
             <FiArrowLeft /> <span>Return to Dashboard</span>
           </button>
@@ -366,6 +392,54 @@ const Settings = () => {
                 {isDeleting ? "Deleting..." : "Confirm Deletion"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Login Modal */}
+      {showAdminModal && (
+        <div className="ultra-modal-overlay">
+          <div className="ultra-modal-content admin-modal">
+            <FiShield className="modal-warn-icon" style={{ color: 'var(--admin-primary, #ef4444)' }} />
+            <h2 style={{ fontSize: '1.5rem', fontWeight: '800', color: 'var(--text-main)' }}>Admin Operations</h2>
+            <p style={{ margin: '15px 0', color: 'var(--text-light)' }}>Enter administrative credentials to proceed.</p>
+            <form onSubmit={handleAdminLogin} style={{ display: 'flex', flexDirection: 'column', gap: '15px', width: '100%' }}>
+              <input 
+                type="text"
+                className="modal-input-field"
+                placeholder="Admin UserID"
+                value={adminCreds.userid}
+                onChange={(e) => setAdminCreds({...adminCreds, userid: e.target.value})}
+                required
+              />
+              <input 
+                type="password"
+                className="modal-input-field"
+                placeholder="Admin Password"
+                value={adminCreds.password}
+                onChange={(e) => setAdminCreds({...adminCreds, password: e.target.value})}
+                required
+              />
+              <div className="modal-button-strip" style={{ marginTop: '10px' }}>
+                <button type="button" className="modal-cancel" onClick={() => setShowAdminModal(false)}>Cancel</button>
+                <button 
+                  type="submit"
+                  className="modal-confirm-admin" 
+                  disabled={isAdminLoggingIn}
+                  style={{
+                    backgroundColor: 'var(--admin-primary, #ef4444)',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontWeight: '600',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {isAdminLoggingIn ? "Authenticating..." : "Access Portal"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

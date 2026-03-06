@@ -66,7 +66,7 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar }) {
         </button>
         <div className="job_detail">
           <h1>{selectedJob.title}</h1>
-          <div className="company-name" style={{ fontSize: '1.2rem', color: 'var(--text-muted)', marginTop: '-20px' }}>{selectedJob.company}</div>
+          <div className="company-name" style={{ fontSize: '1.2rem', color: '#000000', marginTop: '-20px', fontWeight: '600' }}>{selectedJob.company}</div>
           
           <div className="job-meta-grid">
             <div className="meta-item">
@@ -89,7 +89,7 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar }) {
 
           {selectedJob.skills && (
             <div className="skills-section">
-              <b style={{ display: 'block', marginBottom: '10px' }}>Required Skills</b>
+              <b style={{ display: 'block', marginBottom: '10px', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.1em', color: '#000000' }}>Required Skills</b>
               <div className="skills-tags">
                 {selectedJob.skills.split(',').map((skill, i) => (
                   <span key={i} className="skill-tag">{skill.trim()}</span>
@@ -99,16 +99,16 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar }) {
           )}
           
           <div className="description-section">
-             <b style={{ display: 'block', marginBottom: '10px' }}>Job Description</b>
+             <b style={{ display: 'block', marginBottom: '10px', textTransform: 'uppercase', fontSize: '0.8rem', letterSpacing: '0.1em', color: '#000000' }}>Job Description</b>
              <div className="description-content">
                {selectedJob.description}
              </div>
           </div>
           
           {selectedJob.companyContact && (
-            <div className="contact-info" style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '8px' }}>
-              <b style={{ color: 'var(--text-light)', fontSize: '0.8rem', textTransform: 'uppercase' }}>Recruiter Contact</b>
-              <div style={{ fontWeight: '600', marginTop: '5px' }}>{selectedJob.companyContact}</div>
+            <div className="contact-info" style={{ marginTop: '20px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <b style={{ color: '#000000', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Recruiter Contact</b>
+              <div style={{ fontWeight: '700', marginTop: '5px', color: '#000000' }}>{selectedJob.companyContact}</div>
             </div>
           )}
 

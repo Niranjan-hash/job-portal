@@ -35,7 +35,11 @@ const profileSchema = new mongoose.Schema({
   companyname: String,
   jobexpirience: String,
   companycontact: String,
-  projectlink: String,
+  projects: [{
+    title: { type: String, required: true },
+    description: String,
+    link: String
+  }],
   
   // Profile Picture Field
   profilePic: {

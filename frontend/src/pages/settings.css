@@ -3,8 +3,11 @@
     min-height: 100vh;
     width: 100%;
     background-color: var(--bg-main);
-    color: var(--text-main);
+    color: #000000;
     font-family: 'Inter', sans-serif;
+    --text-main: #000000;
+    --text-light: #475569;
+    --text-muted: #64748b;
 }
 
 /* Sidebar Styling - Premium Refinement */
@@ -123,6 +126,7 @@
     padding: 60px 80px;
     overflow-y: auto;
     height: 100vh;
+    background-color: #ffffff; /* White background for black text */
 }
 
 .main-header-minimal {
@@ -172,8 +176,8 @@
 
 .card-top h3 {
     font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-main);
+    font-weight: 800;
+    color: #000000;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
@@ -193,9 +197,9 @@
 
 .row-text h4 {
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 800;
     margin-bottom: 5px;
-    color: var(--text-main);
+    color: #000000;
 }
 
 .row-text p {
@@ -262,7 +266,7 @@ input:checked + .pro-slider:before { transform: translateX(24px); }
     border: 1px solid #e2e8f0;
     padding: 14px;
     border-radius: var(--border-radius-sm);
-    color: var(--text-main);
+    color: #000000;
     outline: none;
     transition: var(--transition);
 }

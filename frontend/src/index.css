@@ -1,34 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
-  /* Modern Professional Palette - Deeper Contrasts */
-  --primary: #4f46e5;       /* Refined Indigo */
-  --primary-hover: #4338ca;
-  --secondary: #0f172a;     /* Deeper Slate */
-  --accent: #10b981;        /* Emerald */
-  --warning: #f59e0b;       /* Amber */
-  --danger: #ef4444;        /* Rose */
+  /* Vibrant Slate Theme - Lightened Dark */
+  --primary: #6366f1;       /* Vibrant Indigo */
+  --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+  --secondary-gradient: linear-gradient(135deg, #ec4899 0%, #f43f5e 100%);
   
-  /* Neutral Palette - Cleaner White/Gray */
-  --bg-main: #f1f5f9;
+  --bg-main: #2d3e5a;       /* Lighter, Richer Navy Blue */
   --bg-surface: #ffffff;
-  --bg-glass: rgba(255, 255, 255, 0.85);
+  --bg-sidebar: rgba(255, 255, 255, 0.05); /* Transparent Glass Sidebar */
   
-  --text-main: #1e293b;     /* High contrast slate */
-  --text-muted: #475569;    /* Mid slate */
-  --text-light: #64748b;    /* Light slate but visible */
-  --border-color: #e2e8f0;
+  --text-on-dark: #ffffff;
+  --text-main: #1e293b;     /* Navy for cards */
+  --text-muted: #64748b;
+  --text-accent: #10b981;
   
-  /* Layout & Shadows - More definition */
-  --border-radius: 20px;
-  --border-radius-sm: 10px;
-  --shadow-sm: 0 4px 10px -1px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
-  --shadow-lg: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
-  --glass-blur: blur(16px);
+  /* Layout & Design Tokens */
+  --border-radius: 16px;
+  --border-radius-sm: 8px;
+  --shadow-card: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --border-color: #f1f5f9;
   
-  /* Transitions */
-  --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --transition: all 0.3s ease;
 }
 
 * {
@@ -52,7 +45,12 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-/* Scrollbar Refinement */
+/* Scrollbar Refinement - Hide scrollbars but keep scrolling */
 ::-webkit-scrollbar {
-  -ms-overflow-style: none;
+  display: none;
+}
+
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE/Edge */
 }

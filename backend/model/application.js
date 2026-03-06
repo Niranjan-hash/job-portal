@@ -22,7 +22,9 @@ const applicationSchema = new mongoose.Schema({
     enum: ['applied', 'viewed', 'shortlisted', 'rejected', 'hired'],
     default: 'applied'
   },
-  resumeUrl: { type: String }, // Link to resume file if we upload it, or just a flag
+  resumeUrl: { type: String },
+  aiScore: { type: Number, default: 0 },
+  aiFeedback: { type: String, default: "" },
   
   appliedAt: {
     type: Date,

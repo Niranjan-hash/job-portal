@@ -160,13 +160,16 @@ const jobRouter = require("./routes/JobPost");
 const searchRouter = require("./routes/search");
 const profileRouter = require('./routes/createprofile');
 const resumeRoutes = require('./routes/resume');
-// ✅ Removed unused { Socket } import
+const aiRoutes = require('./routes/aiRoutes');
+const adminRoutes = require('./routes/adminroutes');// ✅ Removed unused { Socket } import
 
 app.use("/search", searchRouter);
 app.use("/user", authRoutes);
 app.use("/api/jobs", jobRouter);
 app.use("/profile", profileRouter);
 app.use("/resume", resumeRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ 

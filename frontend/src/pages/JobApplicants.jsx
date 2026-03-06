@@ -5,6 +5,20 @@ import { toast } from 'react-toastify';
 import '../component/joblist.css'; // Reusing joblist css
 
 function JobApplicants() {
+  const [apiUrl] = useState('http://localhost:5000');
+
+  const getFullImageUrl = (imageData) => {
+    if (!imageData) return '';
+    if (typeof imageData === 'string') {
+      if (imageData.startsWith('http')) return imageData;
+      if (imageData.startsWith('/uploads')) return `${apiUrl}${imageData}`;
+      return `${apiUrl}/uploads/profile-pics/${imageData}`;
+    }
+    if (imageData?.filename) {
+      return `${apiUrl}/uploads/profile-pics/${imageData.filename}`;
+    }
+    return '';
+  };
   const { jobId } = useParams();
   const navigate = useNavigate();
   const [applicants, setApplicants] = useState([]);
@@ -45,26 +59,49 @@ function JobApplicants() {
   const handleUpdateStatus = async (applicationId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.patch(`http://localhost:5000/api/applications/${applicationId}/status`, 
-        { status: newStatus },
-        { headers: { 'Authorization': `Bearer ${token}` }}
-      );
+      await axios.put(`http://localhost:5000/api/applications/update-status/${applicationId}`, { status: newStatus }, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      toast.success(`Applicant ${newStatus}`);
+      fetchApplicants();
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleGenerateScore = async (applicationId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:5000/api/ai/score/${applicationId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       
-      toast.success(`Applicant ${newStatus} successfully!`);
-      
-      // Update local state
-      setApplicants(applicants.map(app => 
-        app._id === applicationId ? { ...app, status: newStatus } : app
-      ));
-      
-      // Close modal if open
-      if (selectedApplicant && selectedApplicant._id === applicationId) {
-        setSelectedApplicant(prev => ({ ...prev, status: newStatus }));
+      if (response.data.success) {
+        toast.success(`AI Score generated: ${response.data.score}%`);
+        // Update local state
+        setApplicants(applicants.map(app => 
+          app._id === applicationId ? { ...app, aiScore: response.data.score, aiFeedback: response.data.feedback } : app
+        ));
+        
+        if (selectedApplicant && selectedApplicant._id === applicationId) {
+          setSelectedApplicant(prev => ({ 
+            ...prev, 
+            aiScore: response.data.score, 
+            aiFeedback: response.data.feedback 
+          }));
+        }
       }
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.message || "Failed to update status");
+      toast.error("Failed to generate AI score");
     }
+  };
+
+  const getScoreColor = (score) => {
+    if (score >= 80) return '#2ecc71'; // Green
+    if (score >= 50) return '#f1c40f'; // Yellow/Orange
+    return '#e74c3c'; // Red
   };
 
   const openProfile = async (applicant) => {
@@ -96,9 +133,9 @@ function JobApplicants() {
   };
 
   return (
-    <div className="joblist-container">
-      <div className="joblist-header">
-        <h1>Job Applicants</h1>
+    <div className="joblist-container" style={{ backgroundColor: 'var(--bg-main)', color: 'white', minHeight: '100vh' }}>
+      <div className="joblist-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
+        <h1 style={{color: 'white'}}>Job Applicants</h1>
       </div>
 
       {loading && <div className="loading-message">Loading applicants...</div>}
@@ -110,31 +147,47 @@ function JobApplicants() {
         {applicants.map(app => (
           <div className="job-card applicant-card" key={app._id} style={{cursor: 'default'}}>
             <div style={{display: 'flex', alignItems: 'center', marginBottom: '15px', gap: '15px'}}>
-               {app.profile?.profilePic?.filename ? (
+               {app.profile?.profilePic ? (
                  <img 
-                   src={`http://localhost:5000/uploads/profile-pics/${app.profile.profilePic.filename}`} 
+                   src={getFullImageUrl(app.profile.profilePic)} 
                    alt="Profile" 
-                   style={{width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #3498db'}}
+                   style={{width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #6366f1', padding: '2px', background: 'white'}}
                  />
                ) : (
                  <div style={{
-                   width: '50px', 
-                   height: '50px', 
+                   width: '60px', 
+                   height: '60px', 
                    borderRadius: '50%', 
-                   backgroundColor: '#3498db',
+                   background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                    color: 'white',
                    display: 'flex',
                    alignItems: 'center',
                    justifyContent: 'center',
-                   fontSize: '20px',
-                   fontWeight: 'bold'
+                   fontSize: '22px',
+                   fontWeight: '800',
+                   boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)'
                  }}>
                    {(app.profile?.name || app.applicantName).charAt(0).toUpperCase()}
                  </div>
                )}
                <div style={{flex: 1}}>
-                  <h3 style={{margin: 0, fontSize: '1.2rem'}}>{app.profile?.name || app.applicantName}</h3>
-                  <span className={`status-badge ${app.status}`} style={{marginTop: '4px'}}>{app.status}</span>
+                  <h3 style={{margin: 0, fontSize: '1.2rem', color: '#000000'}}>{app.profile?.name || app.applicantName}</h3>
+                  <div style={{display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px'}}>
+                    <span className={`status-badge ${app.status}`}>{app.status}</span>
+                    {app.aiFeedback && (
+                      <span style={{
+                        backgroundColor: getScoreColor(app.aiScore),
+                        color: 'white',
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: '800',
+                        boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
+                      }}>
+                        AI: {app.aiScore}%
+                      </span>
+                    )}
+                  </div>
                </div>
             </div>
             
@@ -148,21 +201,39 @@ function JobApplicants() {
               <span className="info-value">{new Date(app.appliedAt).toLocaleDateString()}</span>
             </div>
 
-            <div className="info-row" style={{marginTop: '10px'}}>
+            <div className="info-row" style={{marginTop: '10px', display: 'flex', gap: '10px'}}>
                <button 
                  onClick={() => openProfile(app)}
                  style={{
-                   padding: '8px 12px',
-                   backgroundColor: '#333',
+                   padding: '10px',
+                   backgroundColor: '#1e293b',
                    color: '#fff',
                    border: 'none',
-                   borderRadius: '4px',
+                   borderRadius: '8px',
                    cursor: 'pointer',
-                   width: '100%'
+                   flex: 1,
+                   fontWeight: '600'
                  }}
                >
-                 View Full Profile
+                 View Profile
                </button>
+               {!app.aiFeedback && (
+                 <button 
+                   onClick={() => handleGenerateScore(app._id)}
+                   style={{
+                     padding: '10px',
+                     backgroundColor: '#6366f1',
+                     color: '#fff',
+                     border: 'none',
+                     borderRadius: '8px',
+                     cursor: 'pointer',
+                     flex: 1,
+                     fontWeight: '600'
+                   }}
+                 >
+                   Gen AI Score
+                 </button>
+               )}
             </div>
             
             <div className="applicant-actions" style={{marginTop: '15px', display: 'flex', gap: '10px'}}>
@@ -213,15 +284,16 @@ function JobApplicants() {
           zIndex: 1000
         }} onClick={closeProfile}>
           <div style={{
-            backgroundColor: 'white',
-            color: 'black',
-            padding: '30px',
-            borderRadius: '8px',
+            backgroundColor: '#ffffff',
+            color: '#000000',
+            padding: '40px',
+            borderRadius: '24px',
             width: '90%',
-            maxWidth: '600px',
+            maxWidth: '700px',
             maxHeight: '90vh',
             overflowY: 'auto',
-            position: 'relative'
+            position: 'relative',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
           }} onClick={e => e.stopPropagation()}>
             <button 
               onClick={closeProfile}
@@ -240,153 +312,200 @@ function JobApplicants() {
             
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px', gap: '15px' }}>
                {/* Avatar Placeholder */}
-               {selectedApplicant.profile?.profilePic?.filename ? (
+               {selectedApplicant.profile?.profilePic ? (
                   <img 
-                    src={`http://localhost:5000/uploads/profile-pics/${selectedApplicant.profile.profilePic.filename}`} 
+                    src={getFullImageUrl(selectedApplicant.profile.profilePic)} 
                     alt="Profile" 
-                    style={{width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #3498db'}}
+                    style={{width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #6366f1', padding: '3px', background: 'white'}}
                   />
                ) : (
                  <div style={{
-                   width: '70px', 
-                   height: '70px', 
+                   width: '90px', 
+                   height: '90px', 
                    borderRadius: '50%', 
-                   backgroundColor: '#3498db',
+                   background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
                    color: 'white',
                    display: 'flex',
                    alignItems: 'center',
                    justifyContent: 'center',
-                   fontSize: '28px',
-                   fontWeight: 'bold'
+                   fontSize: '36px',
+                   fontWeight: '800',
+                   boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)'
                  }}>
                    {(selectedApplicant.profile?.name || selectedApplicant.applicantName).charAt(0).toUpperCase()}
                  </div>
                )}
                <div>
-                  <h2 style={{margin: 0}}>{selectedApplicant.profile?.name || selectedApplicant.applicantName}</h2>
-                  <p style={{margin: '5px 0', color: '#666'}}>{selectedApplicant.profile?.email || selectedApplicant.applicantEmail}</p>
-                  <span className={`status-badge ${selectedApplicant.status}`} style={{marginTop: '5px', display: 'inline-block'}}>
-                    {selectedApplicant.status}
-                  </span>
+                  <h2 style={{margin: 0, color: '#0f172a', fontSize: '1.8rem'}}>{selectedApplicant.profile?.name || selectedApplicant.applicantName}</h2>
+                  <p style={{margin: '5px 0', color: '#64748b', fontWeight: '500'}}>{selectedApplicant.profile?.email || selectedApplicant.applicantEmail}</p>
+                  <div style={{display: 'flex', gap: '10px', marginTop: '8px'}}>
+                    <span className={`status-badge ${selectedApplicant.status}`}>
+                        {selectedApplicant.status}
+                    </span>
+                    {selectedApplicant.profile?.location && (
+                        <span style={{fontSize: '0.85rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                            📍 {selectedApplicant.profile.location}
+                        </span>
+                    )}
+                  </div>
                </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #eee', paddingTop: '20px' }}>
-               <h3>Application Details</h3>
-               <p><strong>Job Title:</strong> {selectedApplicant.jobTitle}</p>
-               <p><strong>Applied On:</strong> {new Date(selectedApplicant.appliedAt).toLocaleDateString()}</p>
-               
-               <h3 style={{marginTop: '20px'}}>Resume</h3>
-               {selectedApplicant.resumeUrl ? (
-                 <button 
-                   onClick={async () => {
-                     try {
-                       const token = localStorage.getItem('token');
-                       const response = await axios.get(
-                         `http://localhost:5000/resume/view/${selectedApplicant.resumeUrl}`,
-                         {
-                           headers: { 'Authorization': `Bearer ${token}` },
-                           responseType: 'blob'
-                         }
-                       );
-                       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-                       window.open(url, '_blank');
-                     } catch (err) {
-                       console.error('View error:', err);
-                       toast.error('Failed to open resume');
-                     }
-                   }}
-                   style={{
-                     display: 'inline-block',
-                     padding: '10px 15px',
-                     backgroundColor: '#f1f1f1',
-                     color: '#333',
-                     border: '1px solid #ddd',
-                     borderRadius: '4px',
-                     cursor: 'pointer'
-                   }}
-                 >
-                   Open Resume PDF
-                 </button>
-               ) : (
-                 <p style={{fontStyle: 'italic', color: '#999'}}>No resume uploaded.</p>
-               )}
-
-               {fetchingProfile ? (
-                 <p style={{marginTop: '20px', color: '#666'}}>Loading profile details...</p>
-               ) : applicantProfile ? (
-                 <div style={{marginTop: '25px', padding: '20px', backgroundColor: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0'}}>
-                    <h3 style={{marginTop: 0, marginBottom: '15px', color: '#1e293b', fontSize: '1.1rem', borderBottom: '2px solid #3498db', display: 'inline-block', paddingBottom: '2px'}}>Full Background</h3>
-                    
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px'}}>
-                      <div>
-                        <p style={{margin: '5px 0', fontSize: '0.9rem', color: '#64748b'}}>Degree & Dept</p>
-                        <p style={{margin: 0, fontWeight: '600', color: '#1e293b'}}>{applicantProfile.degree} ({applicantProfile.department})</p>
-                      </div>
-                      <div>
-                        <p style={{margin: '5px 0', fontSize: '0.9rem', color: '#64748b'}}>College GPA</p>
-                        <p style={{margin: 0, fontWeight: '600', color: '#1e293b'}}>{applicantProfile.collagegpa} ({applicantProfile.collagepassout})</p>
-                      </div>
+             <div style={{ borderTop: '1px solid #eee', paddingTop: '20px' }}>
+                {/* AI ANALYSIS SECTION */}
+                <h3 style={{marginTop: '10px', marginBottom: '15px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px'}}>AI Compatibility Analysis</h3>
+                {selectedApplicant.aiScore > 0 ? (
+                  <div style={{
+                    padding: '18px',
+                    backgroundColor: '#f0fdf4',
+                    borderRadius: '16px',
+                    border: `2px solid ${getScoreColor(selectedApplicant.aiScore)}`,
+                    marginBottom: '25px'
+                  }}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
+                      <span style={{fontWeight: '700', color: '#166534'}}>Match Quality</span>
+                      <span style={{ fontSize: '1.75rem', fontWeight: '900', color: getScoreColor(selectedApplicant.aiScore) }}>{selectedApplicant.aiScore}%</span>
                     </div>
+                    <p style={{margin: 0, color: '#1e293b', fontStyle: 'italic', lineHeight: '1.6'}}>"{selectedApplicant.aiFeedback}"</p>
+                  </div>
+                ) : (
+                  <div style={{padding: '20px', backgroundColor: '#f8fafc', borderRadius: '16px', marginBottom: '25px', textAlign: 'center', border: '1.5px dashed #e2e8f0'}}>
+                     <p style={{color: '#64748b', marginBottom: '12px'}}>No AI analysis generated yet.</p>
+                     <button onClick={() => handleGenerateScore(selectedApplicant._id)} style={{ padding: '10px 24px', backgroundColor: '#6366f1', color: 'white', border: 'none', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>Generate Analysis</button>
+                  </div>
+                )}
 
-                    <div style={{marginBottom: '15px'}}>
-                      <p style={{margin: '5px 0', fontSize: '0.9rem', color: '#64748b'}}>Key Skills</p>
-                      <div style={{display: 'flex', flexWrap: 'wrap', gap: '8px'}}>
-                        {applicantProfile.skills?.split(',').map(skill => (
-                          <span key={skill} style={{backgroundColor: '#e0f2fe', color: '#0369a1', padding: '4px 10px', borderRadius: '15px', fontSize: '0.8rem', fontWeight: '500'}}>{skill.trim()}</span>
-                        )) || 'No skills listed'}
-                      </div>
-                    </div>
+                {fetchingProfile ? (
+                  <p style={{marginTop: '20px', textAlign: 'center', color: '#64748b'}}>Retrieving full profile details...</p>
+                ) : applicantProfile ? (
+                  <div style={{display: 'flex', flexDirection: 'column', gap: '25px'}}>
+                     {/* ACADEMIC BACKGROUND */}
+                     <div style={{padding: '20px', backgroundColor: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0'}}>
+                        <h3 style={{marginTop: 0, marginBottom: '20px', color: '#1e293b', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px'}}>🎓 Academic Background</h3>
+                        
+                        <div style={{display: 'flex', flexDirection: 'column', gap: '20px'}}>
+                           <div style={{padding: '18px', background: 'white', borderRadius: '12px', borderLeft: '5px solid #6366f1', boxShadow: '0 2px 8px rgba(0,0,0,0.05)'}}>
+                              <p style={{margin: '0 0 5px 0', fontSize: '0.8rem', fontWeight: '700', color: '#6366f1', textTransform: 'uppercase'}}>Graduation</p>
+                              <h4 style={{margin: '0 0 5px 0', color: '#0f172a', fontSize: '1.1rem'}}>{applicantProfile.degree} in {applicantProfile.department}</h4>
+                              <p style={{margin: 0, color: '#475569', fontWeight: '500'}}>{applicantProfile.collagename}</p>
+                              <div style={{display: 'flex', gap: '25px', marginTop: '10px'}}>
+                                 <span style={{fontSize: '0.9rem', color: '#10b981', fontWeight: '800'}}>GPA: {applicantProfile.collagegpa}</span>
+                                 <span style={{fontSize: '0.9rem', color: '#64748b', fontWeight: '600'}}>Batch of {applicantProfile.collagepassout}</span>
+                              </div>
+                           </div>
 
-                    {applicantProfile.companyname && (
-                      <div style={{marginBottom: '15px', padding: '12px', backgroundColor: '#fff', borderRadius: '8px', borderLeft: '4px solid #3498db'}}>
-                        <p style={{margin: '0 0 5px 0', fontSize: '0.9rem', fontWeight: '600', color: '#1e293b'}}>Experience: {applicantProfile.job}</p>
-                        <p style={{margin: 0, fontSize: '0.85rem', color: '#64748b'}}>{applicantProfile.companyname} • {applicantProfile.jobexpirience}</p>
-                        <p style={{margin: '5px 0 0 0', fontSize: '0.85rem', color: '#64748b'}}>{applicantProfile.startdate} - {applicantProfile.enddate}</p>
-                      </div>
-                    )}
-
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
-                      {applicantProfile.xgpa && (
-                        <div>
-                          <p style={{margin: '5px 0', fontSize: '0.85rem', color: '#64748b'}}>10th ({applicantProfile.xpassout})</p>
-                          <p style={{margin: 0, fontWeight: '500', color: '#1e293b'}}>GPA: {applicantProfile.xgpa}</p>
+                           <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px'}}>
+                              <div style={{padding: '15px', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9'}}>
+                                 <p style={{margin: '0 0 8px 0', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase'}}>Higher Secondary (12th)</p>
+                                 <p style={{margin: 0, fontWeight: '700', color: '#1e293b'}}>{applicantProfile.xigpa} <span style={{color: '#94a3b8', fontWeight: '400', marginLeft: '5px'}}>({applicantProfile.xipassout})</span></p>
+                              </div>
+                              <div style={{padding: '15px', background: 'white', borderRadius: '12px', border: '1px solid #f1f5f9'}}>
+                                 <p style={{margin: '0 0 8px 0', fontSize: '0.75rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase'}}>Secondary School (10th)</p>
+                                 <p style={{margin: 0, fontWeight: '700', color: '#1e293b'}}>{applicantProfile.xgpa} <span style={{color: '#94a3b8', fontWeight: '400', marginLeft: '5px'}}>({applicantProfile.xpassout})</span></p>
+                              </div>
+                           </div>
                         </div>
-                      )}
-                      {applicantProfile.xigpa && (
-                        <div>
-                          <p style={{margin: '5px 0', fontSize: '0.85rem', color: '#64748b'}}>12th/Dip ({applicantProfile.xipassout})</p>
-                          <p style={{margin: 0, fontWeight: '500', color: '#1e293b'}}>GPA: {applicantProfile.xigpa}</p>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {applicantProfile.projectlink && (
-                      <div style={{marginTop: '15px'}}>
-                        <p style={{margin: '5px 0', fontSize: '0.9rem', color: '#64748b'}}>Portfolio/Project</p>
-                        <a href={applicantProfile.projectlink} target="_blank" rel="noopener noreferrer" style={{color: '#3498db', textDecoration: 'none', fontSize: '0.9rem'}}>View Project Link</a>
-                      </div>
-                    )}
-                 </div>
-               ) : (
-                 <div style={{marginTop: '20px', padding: '15px', backgroundColor: '#fff7ed', borderRadius: '8px', border: '1px solid #ffedd5'}}>
-                    <p style={{margin: 0, fontSize: '0.9rem', color: '#9a3412'}}>No detailed profile found for this applicant.</p>
-                 </div>
-               )}
-            </div>
+                     </div>
 
-            <div style={{marginTop: '30px', display: 'flex', justifyContent: 'flex-end', gap: '10px'}}>
+                     {/* SKILLS */}
+                     <div>
+                        <h3 style={{marginBottom: '15px', color: '#1e293b', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px'}}>🛠 Technical Arsenal</h3>
+                        <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+                           {applicantProfile.skills?.split(',').map(skill => (
+                             <span key={skill} style={{backgroundColor: '#eff6ff', color: '#2563eb', padding: '8px 16px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: '700', border: '1px solid #dbeafe', boxShadow: '0 2px 4px rgba(37, 99, 235, 0.05)'}}>{skill.trim()}</span>
+                           )) || <span style={{color: '#94a3b8', fontStyle: 'italic'}}>No skills added.</span>}
+                        </div>
+                     </div>
+
+                     {/* EXPERIENCE */}
+                     {applicantProfile.companyname && (
+                        <div style={{padding: '20px', backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)'}}>
+                           <h3 style={{marginTop: 0, marginBottom: '20px', color: '#1e293b', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px'}}>💼 Work Experience</h3>
+                           <div style={{borderLeft: '4px solid #6366f1', paddingLeft: '20px'}}>
+                              <p style={{margin: 0, fontWeight: '800', color: '#0f172a', fontSize: '1.1rem'}}>{applicantProfile.job}</p>
+                              <p style={{margin: '4px 0', color: '#4338ca', fontWeight: '700', fontSize: '1rem'}}>{applicantProfile.companyname}</p>
+                              <p style={{margin: '8px 0', color: '#64748b', fontSize: '0.9rem', fontWeight: '500'}}>{applicantProfile.jobexpirience} experience</p>
+                              {applicantProfile.companycontact && <div style={{margin: '12px 0 0 0', fontSize: '0.8rem', color: '#64748b', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', display: 'inline-block'}}>📞 Verification: {applicantProfile.companycontact}</div>}
+                           </div>
+                        </div>
+                     )}
+
+                     {/* INTERNSHIP & PROJECTS */}
+                     {(applicantProfile.internname || applicantProfile.projectlink) && (
+                        <div style={{padding: '20px', backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)'}}>
+                           <h3 style={{marginTop: 0, marginBottom: '20px', color: '#1e293b', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '10px'}}>🌱 Projects & Internships</h3>
+                           {applicantProfile.internname && (
+                              <div style={{marginBottom: '20px', paddingBottom: '15px', borderBottom: applicantProfile.projectlink ? '1px solid #f1f5f9' : 'none'}}>
+                                 <p style={{margin: 0, fontWeight: '700', color: '#0f172a', fontSize: '1rem'}}>{applicantProfile.internname}</p>
+                                 <p style={{margin: '5px 0', fontSize: '0.9rem', color: '#64748b'}}>{applicantProfile.startdate} — {applicantProfile.enddate}</p>
+                                 {applicantProfile.internlink && <a href={applicantProfile.internlink} target="_blank" rel="noopener noreferrer" style={{color: '#6366f1', fontSize: '0.85rem', fontWeight: '700', textDecoration: 'none', display: 'inline-block', marginTop: '5px'}}>View Internship Proof →</a>}
+                              </div>
+                           )}
+                           {applicantProfile.projectlink && (
+                              <div style={{padding: '15px', backgroundColor: '#fdf2f8', borderRadius: '12px', border: '1px solid #fbcfe8'}}>
+                                 <p style={{margin: '0 0 8px 0', fontSize: '0.8rem', color: '#be185d', fontWeight: '800', textTransform: 'uppercase'}}>Featured Project</p>
+                                 <a href={applicantProfile.projectlink} target="_blank" rel="noopener noreferrer" style={{color: '#db2777', textDecoration: 'none', fontWeight: '700', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '6px'}}>Live Demo / Repository <span style={{fontSize: '1.2rem'}}>↗</span></a>
+                              </div>
+                           )}
+                        </div>
+                     )}
+
+                     {/* RESUME ACTION */}
+                     <div style={{marginTop: '10px', padding: '25px', background: '#0f172a', borderRadius: '20px', textAlign: 'center', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.2)'}}>
+                        <p style={{marginBottom: '15px', fontWeight: '700', color: '#ffffff', fontSize: '1.1rem'}}>Official Resume Document</p>
+                        {selectedApplicant.resumeUrl ? (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem('token');
+                                const response = await axios.get(
+                                  `http://localhost:5000/resume/view/${selectedApplicant.resumeUrl}`,
+                                  {
+                                    headers: { 'Authorization': `Bearer ${token}` },
+                                    responseType: 'blob'
+                                  }
+                                );
+                                const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+                                window.open(url, '_blank');
+                              } catch (err) {
+                                console.error('View error:', err);
+                                toast.error('Failed to open resume');
+                              }
+                            }}
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '14px 30px', backgroundColor: 'white', color: '#0f172a', border: 'none', borderRadius: '12px', fontWeight: '800', cursor: 'pointer', transition: 'all 0.2s' }}
+                            onMouseOver={e => e.currentTarget.style.transform = 'translateY(-2px)'}
+                            onMouseOut={e => e.currentTarget.style.transform = 'translateY(0)'}
+                          >
+                            <span>📄</span> Open Full PDF Resume
+                          </button>
+                        ) : <p style={{fontStyle: 'italic', color: '#64748b'}}>No resume uploaded by applicant.</p>}
+                     </div>
+                  </div>
+                ) : (
+                  <div style={{marginTop: '20px', padding: '25px', backgroundColor: '#fff7ed', borderRadius: '16px', border: '1px solid #ffedd5', textAlign: 'center'}}>
+                     <p style={{margin: 0, fontSize: '1rem', color: '#9a3412', fontWeight: '600'}}>Applicant has not completed their full profile yet.</p>
+                     <p style={{margin: '5px 0 0 0', fontSize: '0.85rem', color: '#c2410c'}}>Only basic application data and resume are available.</p>
+                  </div>
+                )}
+             </div>
+
+            <div style={{marginTop: '40px', display: 'flex', justifyContent: 'center'}}>
               <button 
                 onClick={closeProfile}
                 style={{
-                  padding: '10px 20px',
-                  backgroundColor: '#f1f1f1',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer'
+                  padding: '12px 40px',
+                  backgroundColor: '#f1f5f9',
+                  color: '#475569',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
                 }}
+                onMouseOver={e => e.currentTarget.style.background = '#e2e8f0'}
+                onMouseOut={e => e.currentTarget.style.background = '#f1f5f9'}
               >
-                Close
+                Close Profile
               </button>
             </div>
           </div>

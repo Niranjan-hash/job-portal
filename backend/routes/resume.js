@@ -3,7 +3,9 @@ const router = express.Router();
 const path = require('path'); // Added path
 const fs = require('fs'); // Added fs
 const { authenticateToken } = require('../middleware/auth');
-const upload = require('../middleware/uploadresume'); // Add this
+const upload = require('../middleware/uploadresume');
+const pdf = require('pdf-parse');
+const mammoth = require('mammoth');
 const Resume = require('../model/resumeschema'); // Capital R, singular
 
 router.post('/upload', authenticateToken, upload.single('resume'), async (req, res) => {
@@ -146,5 +148,29 @@ router.get('/view/:filename', authenticateToken, async (req, res) => {
         });
     }
 });
+
+async function extractTextFromFile(filePath, mimeType) {
+    try {
+        const fullPath = path.resolve(filePath);
+        if (!fs.existsSync(fullPath)) return '';
+
+        const dataBuffer = fs.readFileSync(fullPath);
+
+        if (mimeType === 'application/pdf') {
+            const data = await pdf(dataBuffer);
+            return data.text || '';
+        } else if (
+            mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
+            filePath.endsWith('.docx')
+        ) {
+            const result = await mammoth.extractRawText({ buffer: dataBuffer });
+            return result.value || '';
+        }
+        return '';
+    } catch (error) {
+        console.error('Text extraction error:', error);
+        return '';
+    }
+}
 
 module.exports = router;

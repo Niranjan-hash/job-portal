@@ -12,6 +12,8 @@ import AppliedJobs from './pages/AppliedJobs';
 import JobApplicants from './pages/JobApplicants';
 import Notifications from './pages/Notifications';
 import Settings from './pages/Settings';
+import ProjectShowroom from './pages/ProjectShowroom';
+import AdminDashboard from './pages/AdminDashboard';
 import ChatBot from './component/ChatBot';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -45,7 +47,9 @@ function App() {
       });
 
       return () => {
-        socket.disconnect();
+        if (socket && socket.connected) {
+          socket.disconnect();
+        }
       };
     }
   }, []);
@@ -67,6 +71,8 @@ function App() {
           <Route path='/job/:jobId/applicants' element={<JobApplicants/>} />
           <Route path='/notifications' element={<Notifications/>} />
           <Route path='/settings' element={<Settings/>} />
+          <Route path='/showroom' element={<ProjectShowroom/>} />
+          <Route path='/admin' element={<AdminDashboard/>} />
         </Routes>
         <ChatBot />
         <ToastContainer position="top-right" autoClose={5000} />

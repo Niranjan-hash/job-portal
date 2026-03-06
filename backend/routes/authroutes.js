@@ -168,7 +168,7 @@ router.post("/login", async (req, res) => {
     }
     
     // Check if user is verified
-    if (!user.isVerified) {  // ✅ camelCase
+    if (!user.isVerified) {
       return res.status(403).json({ 
         success: false, 
         message: "Account not verified. Please verify your email." 
@@ -197,7 +197,7 @@ router.post("/login", async (req, res) => {
       token,
       user: {
         id: user._id,
-        userName: user.userName,  // ✅ camelCase
+        userName: user.userName,
         userid: user.userid,
         isVerified: user.isVerified
       }

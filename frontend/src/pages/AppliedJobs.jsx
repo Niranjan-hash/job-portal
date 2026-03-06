@@ -67,10 +67,10 @@ function AppliedJobs() {
   };
 
   return (
-    <div className="joblist-container">
-      <div className="joblist-header">
-        <h1>My Applications</h1>
-        <button onClick={() => navigate('/dashboard')} className="back-btn">Back to Dashboard</button>
+    <div className="joblist-container" style={{ backgroundColor: 'var(--bg-main)', color: 'white', minHeight: '100vh', padding: '40px' }}>
+      <div className="joblist-header" style={{ marginBottom: '30px' }}>
+        <h1 style={{ color: 'white' }}>My Applications</h1>
+        <button onClick={() => navigate('/dashboard')} className="back-btn" style={{ background: 'transparent' }}>Back to Dashboard</button>
       </div>
 
       {loading && <div className="loading-message">Loading...</div>}
@@ -92,7 +92,21 @@ function AppliedJobs() {
             </div>
             <div className="info-row">
               <span className="info-label">Status:</span>
-              <span className={`info-value status-badge ${app.status}`}>{app.status}</span>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <span className={`info-value status-badge ${app.status}`}>{app.status}</span>
+                {app.aiFeedback && (
+                  <span style={{
+                    backgroundColor: app.aiScore >= 80 ? '#2ecc71' : app.aiScore >= 50 ? '#f1c40f' : '#e74c3c',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '0.7rem',
+                    fontWeight: '800'
+                  }}>
+                    AI: {app.aiScore}%
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}
