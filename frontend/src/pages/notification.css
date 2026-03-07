@@ -191,7 +191,7 @@
 }
 
 .action-btn.delete {
-    background: #fef2f2;
+    background: #e95a5a;
     border: 1px solid #fee2e2;
     color: var(--danger);
     cursor: pointer;
@@ -202,8 +202,8 @@
 }
 
 .action-btn.delete:hover {
-    background: #fee2e2;
-    transform: scale(1.1);
+    background: #e51a1a;
+    transform: scale(1.1);    
 }
 
 .arrow-indicator {

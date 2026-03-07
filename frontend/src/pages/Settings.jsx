@@ -17,6 +17,8 @@ import {
   FiCheckCircle,
   FiLoader
 } from 'react-icons/fi';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import './settings.css';
 
 const Settings = () => {
@@ -65,6 +67,15 @@ const Settings = () => {
       setLoading(false);
     }
   };
+
+  useGSAP(() => {
+    gsap.fromTo('.settings-sidebar', { opacity: 0, x: -50 }, { opacity: 1, x: 0, duration: 0.6, ease: 'power2.out' });
+    gsap.fromTo('.settings-main-portal', { opacity: 0 }, { opacity: 1, duration: 0.8, delay: 0.2, ease: 'power2.out' });
+  }, []);
+
+  useGSAP(() => {
+    gsap.fromTo('.premium-card', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' });
+  }, [activeTab]);
 
   const updatePreference = async (key, value) => {
     const updatedPrefs = { ...preferences, [key]: value };

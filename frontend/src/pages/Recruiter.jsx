@@ -12,6 +12,8 @@ import {
     FiCheckCircle,
     FiPlusSquare
 } from 'react-icons/fi';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import './recruiter.css';
 
 function Recruiter() {
@@ -98,6 +100,17 @@ function Recruiter() {
             setLoading(false);
         }
     };
+
+    useGSAP(() => {
+        gsap.fromTo('.recruiter-container', 
+            { opacity: 0, scale: 0.98 }, 
+            { opacity: 1, scale: 1, duration: 0.7, ease: 'power2.out' }
+        );
+        gsap.fromTo('.form-group', 
+            { opacity: 0, y: 20 }, 
+            { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out', delay: 0.2 }
+        );
+    }, []);
 
     return (
         <div className="recruiter-page">

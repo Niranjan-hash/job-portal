@@ -3,6 +3,8 @@ import axios from 'axios';
 import './projectshowroom.css';
 import { FiPlus, FiTrash2, FiExternalLink, FiGithub, FiFolder } from 'react-icons/fi';
 import { toast } from 'react-toastify';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 
 const ProjectShowroom = () => {
   const [projects, setProjects] = useState([]);
@@ -29,6 +31,13 @@ const ProjectShowroom = () => {
       setLoading(false);
     }
   };
+
+  useGSAP(() => {
+    if (!loading && projects.length > 0) {
+      gsap.fromTo('.project-card', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.6, stagger: 0.15, ease: 'power2.out' });
+    }
+    gsap.fromTo('.showroom-header', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
+  }, [loading, projects]);
 
   const handleAddProject = async (e) => {
     e.preventDefault();
@@ -133,7 +142,7 @@ const ProjectShowroom = () => {
             <div className="project-card-header">
               <FiFolder className="folder-icon" />
               <button className="delete-proj-btn" onClick={() => handleDeleteProject(index)}>
-                <FiTrash2 />
+                <FiTrash2 />remove
               </button>
             </div>
             <h3>{project.title}</h3>

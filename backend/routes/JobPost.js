@@ -30,7 +30,7 @@ router.post("/", authenticateToken, async (req, res) => {
       description: description,
       companyContact: companyContact,
       skills: skills,
-      postedby: req.user.id
+      postedby: req.userId
     });
     
     console.log("✅ JOB SAVED! ID:", job._id);
@@ -59,7 +59,7 @@ router.get("/", async (req, res) => {
 });
 // GET – All Jobs
 router.get("/my-jobs", authenticateToken, async (req, res) => {
-  const jobs = await JobDetail.find({ postedby: req.user.id });
+  const jobs = await JobDetail.find({ postedby: req.userId });
   res.json(jobs);
 });
 // PUT /api/jobs/:id
@@ -68,7 +68,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
         const updatedJob = await JobDetail.findOneAndUpdate(
             { 
                 _id: req.params.id,
-                postedby: req.user.id
+                postedby: req.userId
             },
             req.body,
             { 
@@ -93,7 +93,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const deletedjob = await JobDetail.findOneAndDelete(
       {
         _id:req.params.id,
-        postedby:req.user.id
+        postedby:req.userId
       }
     )
        if (!deletedjob) {

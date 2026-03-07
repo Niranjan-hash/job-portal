@@ -54,3 +54,15 @@ h1, h2, h3, h4, h5, h6 {
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE/Edge */
 }
+/* Toastify Customization */
+.Toastify__toast-container {
+  width: 50% !important;
+  max-width: 50vw !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.Toastify__toast {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}

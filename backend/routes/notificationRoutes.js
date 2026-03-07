@@ -6,7 +6,7 @@ const { authenticateToken } = require('../middleware/auth');
 // GET /api/notifications
 router.get('/', authenticateToken, async (req, res) => {
   try {
-    const notifications = await Notification.find({ recipientId: req.user.id })
+    const notifications = await Notification.find({ recipientId: req.userId })
       .sort({ createdAt: -1 })
       .limit(50); // Limit to last 50 for performance
       
@@ -21,8 +21,7 @@ router.get('/', authenticateToken, async (req, res) => {
 router.get('/unread-count', authenticateToken, async (req, res) => {
   try {
     const count = await Notification.countDocuments({ 
-      recipientId: req.user.id, 
-      isRead: false 
+      recipientId: req.userId,       isRead: false 
     });
     res.json({ success: true, count });
   } catch (error) {
@@ -34,7 +33,7 @@ router.get('/unread-count', authenticateToken, async (req, res) => {
 router.patch('/:id/read', authenticateToken, async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(
-      { _id: req.params.id, recipientId: req.user.id },
+      { _id: req.params.id, recipientId: req.userId },
       { isRead: true },
       { new: true }
     );
@@ -54,7 +53,7 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   try {
     const notification = await Notification.findOneAndDelete({ 
       _id: req.params.id, 
-      recipientId: req.user.id 
+      recipientId: req.userId 
     });
     
     if (!notification) {

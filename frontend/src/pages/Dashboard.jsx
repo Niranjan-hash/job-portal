@@ -21,6 +21,8 @@ import {
   FiMapPin,
   FiFolder
 } from "react-icons/fi";
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 
 function Dashboard() {
   const [userData, setUserData] = useState({
@@ -82,6 +84,51 @@ function Dashboard() {
     fetchUnreadCount();
     fetchJobs();
   }, []);
+
+  useGSAP(() => {
+    if (loading) return;
+
+    const tl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+    
+    // Animate header only if visible
+    if (isVisible) {
+      tl.fromTo('.top-header', 
+        { y: -80, opacity: 0, scale: 0.98 }, 
+        { y: 0, opacity: 1, scale: 1, duration: 0.8, ease: 'back.out(1.2)' }
+      )
+      .fromTo('.horizontal-title-bar-container', 
+        { opacity: 0, y: -20 }, 
+        { opacity: 1, y: 0, duration: 0.6 }, 
+        "-=0.6"
+      );
+    }
+
+    tl.fromTo('.main-content', 
+        { opacity: 0, y: 30, filter: 'blur(8px)' }, 
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8 }, 
+        isVisible ? "-=0.4" : 0
+      );
+  }, [loading, isVisible]);
+
+  useGSAP(() => {
+    if (isMenuOpen) {
+      const tl = gsap.timeline();
+      tl.fromTo('.menu-overlay', 
+          { opacity: 0 }, 
+          { opacity: 1, duration: 0.3, ease: 'power2.out' }
+        )
+        .fromTo('.slide-menu', 
+          { x: '-120%', opacity: 0 }, 
+          { x: '0%', opacity: 1, duration: 0.6, ease: 'expo.out' }, 
+          "-=0.2"
+        )
+        .fromTo('.menu-item', 
+          { opacity: 0, x: -20 }, 
+          { opacity: 1, x: 0, duration: 0.4, stagger: 0.04, ease: 'power3.out' }, 
+          "-=0.4"
+        );
+    }
+  }, [isMenuOpen]);
 
   // Dynamic Search with Debounce
   useEffect(() => {
@@ -358,7 +405,7 @@ function Dashboard() {
                         }}
                         aria-label="Close search"
                       >
-                        <FiX size={24} strokeWidth={3} />
+                        <FiX size={24} strokeWidth={3} /> X
                       </button>
                     </div>
                   </form>

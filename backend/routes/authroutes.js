@@ -365,4 +365,60 @@ router.delete("/delete-account", authenticateToken, async (req, res) => {
   }
 });
 
+// FORGOT PASSWORD - SEND OTP
+router.post("/forgot-password", async (req, res) => {
+  try {
+    const { userid } = req.body;
+    const user = await User.findOne({ userid });
+    
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found with this email" });
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    user.resetOtp = otp;
+    user.resetOtpExpires = Date.now() + 2 * 60 * 1000; // 2 minutes expiry
+    await user.save();
+
+    // Send OTP email
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL,
+        to: userid,
+        subject: "Password Reset OTP",
+        text: `Your OTP for password reset is: ${otp}. It will expire in 2 minutes.`
+      });
+      res.json({ success: true, message: "Reset OTP sent to your email" });
+    } catch (emailError) {
+      console.error("Email error:", emailError);
+      res.status(500).json({ success: false, message: "Failed to send reset email" });
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Forgot password request failed" });
+  }
+});
+
+// RESET PASSWORD - VERIFY OTP & UPDATE
+router.post("/reset-password", async (req, res) => {
+  try {
+    const { userid, otp, newPassword } = req.body;
+    const user = await User.findOne({ userid });
+
+    if (!user || user.resetOtp !== otp || user.resetOtpExpires < Date.now()) {
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    // Hash and update password
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetOtp = null;
+    user.resetOtpExpires = null;
+    await user.save();
+
+    res.json({ success: true, message: "Password reset successful. You can now login." });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Password reset failed" });
+  }
+});
+
 module.exports = router;

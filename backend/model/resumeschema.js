@@ -30,6 +30,14 @@ const resumeSchema = new mongoose.Schema({
         type: String,
         default: ''
     },
+    generalAiScore: {
+        type: Number,
+        default: 0
+    },
+    generalAiFeedback: {
+        type: String,
+        default: ''
+    },
     uploadDate: {  // Better name than 'update'
         type: Date,
         default: Date.now

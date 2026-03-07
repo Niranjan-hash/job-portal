@@ -11,6 +11,8 @@ import {
   FiClock,
   FiChevronRight
 } from 'react-icons/fi';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import './notification.css'
 
 const Notifications = () => {
@@ -71,6 +73,15 @@ const Notifications = () => {
       setLoading(false);
     }
   };
+
+  useGSAP(() => {
+    if (!loading && notifications.length > 0) {
+      gsap.fromTo('.notification-card', 
+        { opacity: 0, x: -20 }, 
+        { opacity: 1, x: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out' }
+      );
+    }
+  }, [loading, notifications]);
 
   const markAsRead = async (id) => {
     try {

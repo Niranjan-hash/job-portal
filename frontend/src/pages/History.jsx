@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { toast } from 'react-toastify';
 import './History.css';
 
 function History() {
@@ -55,6 +58,15 @@ function History() {
         }
     };
 
+    useGSAP(() => {
+        if (!loading) {
+            gsap.fromTo('.page-header', { opacity: 0, y: -20 }, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
+            if (jobs.length > 0) {
+                gsap.fromTo('.job-item', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, stagger: 0.1, ease: 'power2.out' });
+            }
+        }
+    }, [loading, jobs]);
+
     const handleDelete = async (jobId) => {
         if (!window.confirm('Are you sure you want to delete this job?')) {
             return;
@@ -73,17 +85,17 @@ function History() {
             
             setJobs(prevJobs => prevJobs.filter(job => job._id !== jobId));
             
-            alert('Job deleted successfully!');
+            toast.success('Job deleted successfully!');
         } catch (err) {
             console.error('Error deleting job:', err);
             
             if (err.response?.status === 401) {
-                alert('Session expired. Please login again.');
+                toast.error('Session expired. Please login again.');
                 navigate('/login');
             } else if (err.response?.status === 404) {
-                alert('Job not found or already deleted.');
+                toast.error('Job not found or already deleted.');
             } else {        
-                alert('Failed to delete job. Please try again.');
+                toast.error('Failed to delete job. Please try again.');
             }
         } finally {
             setDeletingId(null);
@@ -106,7 +118,7 @@ function History() {
     const handleUpdate = async (jobId) => {
         if (!editForm.title.trim() || !editForm.company.trim() || 
             !editForm.location.trim() || !editForm.type.trim()) {
-            alert('Please fill all required fields: Title, Company, Location, and Type');
+            toast.warning('Please fill all required fields: Title, Company, Location, and Type');
             return;
         }
 
@@ -130,19 +142,19 @@ function History() {
             ));
             
             setEditingJob(null);
-            alert('Job updated successfully!');
+            toast.success('Job updated successfully!');
         } catch (err) {
             console.error('Error updating job:', err);
             
             if (err.response?.status === 401) {
-                alert('Session expired. Please login again.');
+                toast.error('Session expired. Please login again.');
                 navigate('/login');
             } else if (err.response?.status === 404) {
-                alert('Job not found or you are not authorized to edit it.');
+                toast.error('Job not found or you are not authorized to edit it.');
             } else if (err.response?.status === 400) {
-                alert('Invalid data. Please check your input.');
+                toast.error('Invalid data. Please check your input.');
             } else {
-                alert('Failed to update job. Please try again.');
+                toast.error('Failed to update job. Please try again.');
             }
         } finally {
             setUpdatingId(null);

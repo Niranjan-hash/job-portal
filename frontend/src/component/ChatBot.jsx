@@ -1,6 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FiMessageSquare, FiSend, FiX, FiSmile } from 'react-icons/fi';
+import { FiSend, FiX, FiSmile } from 'react-icons/fi';
+import { FaRobot } from 'react-icons/fa';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import './chatbot.css';
 
 const ChatBot = () => {
@@ -9,7 +12,7 @@ const ChatBot = () => {
   const [messages, setMessages] = useState([
     { 
       type: 'bot', 
-      text: "👋 Hi there! I'm your Job Assistant. How can I help you today? \n\nTry asking for jobs like 'React jobs in Bangalore' or 'How do I apply?'" 
+      text: "👋 Hi! I'm your AI Career Assistant — powered by GPT.\n\nI can help you with:\n• 🔍 Finding jobs (e.g. 'Find React jobs in Chennai')\n• 🎯 Career guidance & skill roadmaps\n• 💡 Tech questions (What is React? Explain APIs)\n• 🎤 Interview preparation\n• 📝 Resume tips\n• 🌍 General knowledge\n\nAsk me anything! 😊" 
     }
   ]);
   const [loading, setLoading] = useState(false);
@@ -23,24 +26,35 @@ const ChatBot = () => {
     scrollToBottom();
   }, [messages]);
 
+  useGSAP(() => {
+    if (isOpen) {
+      gsap.fromTo('.chat-window', { opacity: 0, y: 50, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4, ease: 'back.out(1.7)' });
+    }
+  }, [isOpen]);
+
   const handleSend = async (e) => {
     e?.preventDefault();
     if (!input.trim() || loading) return;
 
     const userMessage = input.trim();
     setInput('');
-    setMessages(prev => [...prev, { type: 'user', text: userMessage }]);
+
+    const updatedMessages = [...messages, { type: 'user', text: userMessage }];
+    setMessages(updatedMessages);
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/chat', { message: userMessage });
+      const response = await axios.post('http://localhost:5000/api/chat', { 
+        message: userMessage,
+        history: messages  // Send full conversation history for context
+      });
       
       if (response.data.success) {
         setMessages(prev => [...prev, { type: 'bot', text: response.data.response }]);
       }
     } catch (error) {
       console.error("Chat error:", error);
-      setMessages(prev => [...prev, { type: 'bot', text: "Sorry, I'm having trouble connecting to my brain right now. Please try again later!" }]);
+      setMessages(prev => [...prev, { type: 'bot', text: "Sorry, I'm having trouble connecting right now. Please try again!" }]);
     } finally {
       setLoading(false);
     }
@@ -50,7 +64,7 @@ const ChatBot = () => {
     <div className="chatbot-container">
       {!isOpen && (
         <button className="chatbot-toggle" onClick={() => setIsOpen(true)}>
-          <FiMessageSquare />
+          <FaRobot size={24} />
         </button>
       )}
 
@@ -58,11 +72,11 @@ const ChatBot = () => {
         <div className="chat-window">
           <div className="chat-header">
             <div>
-              <h3>Career Assistant</h3>
-              <p>Online | Virtual Bot</p>
+              <h3 style={{ color: '#3b82f6' }}>Career Assistant</h3>
+              <p style={{ color: '#60a5fa' }}>Online | Virtual Bot</p>
             </div>
             <button className="close-chat" onClick={() => setIsOpen(false)}>
-              <FiX />
+              <FiX /> X
             </button>
           </div>
 

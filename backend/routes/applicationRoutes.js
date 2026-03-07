@@ -8,7 +8,7 @@ const { authenticateToken } = require('../middleware/auth');
 router.post('/apply/:jobId', authenticateToken, async (req, res) => {
   try {
     const { jobId } = req.params;
-    const userId = req.user.id;
+    const userId = req.userId;
     const { name, email, resumeUrl } = req.body; // Optional override fields
 
     // 1. Check if job exists
@@ -29,12 +29,12 @@ router.post('/apply/:jobId', authenticateToken, async (req, res) => {
     }
 
     // 4. Create Application
-    // Ideally we fetch user details from User model if not provided, but for now we trust client or defaults
+    // Use the verified userName and email from the token to avoid identity spoofing
     const application = new Application({
       jobId,
       userId,
-      applicantName: name || req.user.userName || 'Unknown Candidate', // Fallback
-      applicantEmail: email || req.user.userid || 'No Email',
+      applicantName: req.user.userName || name || 'Unknown Candidate',
+      applicantEmail: req.user.userid || email || 'No Email',
       jobTitle: job.title,
       company: job.company,
       resumeUrl: resumeUrl || '',
@@ -69,7 +69,7 @@ router.post('/apply/:jobId', authenticateToken, async (req, res) => {
         applicationId: application._id,
         jobId: job._id,
         jobTitle: job.title,
-        applicantName: application.applicantName,
+        senderName: application.applicantName, // Changed from applicantName for frontend compatibility
         resumeUrl: application.resumeUrl,
         appliedAt: application.appliedAt
       }
@@ -99,7 +99,7 @@ router.post('/apply/:jobId', authenticateToken, async (req, res) => {
 // For Job Seekers to see what they applied to
 router.get('/my-applications', authenticateToken, async (req, res) => {
   try {
-    const applications = await Application.find({ userId: req.user.id })
+    const applications = await Application.find({ userId: req.userId })
       .sort({ createdAt: -1 });
     
     res.json({ success: true, applications });
@@ -125,7 +125,7 @@ router.patch('/:applicationId/status', authenticateToken, async (req, res) => {
     }
 
     // Verify the recruiter owns the job associated with this application
-    const job = await JobDetail.findOne({ _id: application.jobId, postedby: req.user.id });
+    const job = await JobDetail.findOne({ _id: application.jobId, postedby: req.userId.toString() });
     if (!job) {
       return res.status(403).json({ success: false, message: 'Not authorized to update this application' });
     }
@@ -145,7 +145,7 @@ router.patch('/:applicationId/status', authenticateToken, async (req, res) => {
     const Notification = require('../model/notification');
     const notification = new Notification({
       recipientId: seekerId,
-      senderId: req.user.id,
+      senderId: req.userId,
       type: 'STATUS_UPDATE',
       message: `Your application for ${job.title} has been ${status}`,
       data: {
@@ -178,7 +178,7 @@ router.get('/job/:jobId', authenticateToken, async (req, res) => {
     const { jobId } = req.params;
     
     // Verify job belongs to user
-    const job = await JobDetail.findOne({ _id: jobId, postedby: req.user.id });
+    const job = await JobDetail.findOne({ _id: jobId, postedby: req.userId.toString() });
     if (!job) {
       return res.status(403).json({ success: false, message: 'Not authorized or job not found' });
     }

@@ -71,6 +71,7 @@
   font-family: inherit;
   font-size: 1rem;
   transition: var(--transition);
+    color: black !important;
 }
 
 .form-grid input:focus, .form-grid textarea:focus {
@@ -86,8 +87,9 @@
 }
 
 .cancel-btn {
-  background: #f1f5f9;
+  background: #e9ebed;
   border: none;
+  color: black;
   padding: 10px 20px;
   border-radius: 10px;
   cursor: pointer;
@@ -124,10 +126,13 @@
   color: var(--text-light);
   cursor: pointer;
   transition: var(--transition);
+  color: red;
+  width: 75%;
 }
 
 .delete-proj-btn:hover {
-  color: var(--danger);
+  color: white;
+  background-color: red;
 }
 
 .project-card h3 {

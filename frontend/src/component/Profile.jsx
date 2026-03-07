@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
+import { toast } from 'react-toastify';
 import { 
   FiUser, 
   FiMail, 
@@ -70,6 +73,10 @@ const Profile = () => {
       if (imageData.startsWith('/uploads')) return `${apiUrl}${imageData}`;
       return `${apiUrl}/uploads/profile-pics/${imageData}`;
     }
+    if (imageData?.filename) {
+      if (imageData.filename.startsWith('http')) return imageData.filename;
+      return `${apiUrl}/uploads/profile-pics/${imageData.filename}`;
+    }
     return '';
   };
 
@@ -102,9 +109,37 @@ const Profile = () => {
     }
   };
 
+  useGSAP(() => {
+    if (!loading) {
+      gsap.fromTo('.profile-section-card', 
+        { opacity: 0, y: 20 }, 
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' }
+      );
+      gsap.fromTo('.profile-header-pro', 
+        { opacity: 0, y: -20 }, 
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }
+      );
+    }
+  }, [loading]);
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRemoveAvatar = async () => {
+    try {
+      const token = getAuthToken();
+      const response = await axios.delete(`${apiUrl}/profile/delete-profile-pic`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setFormData(prev => ({ ...prev, profilePic: "" }));
+        toast.success("Profile picture removed");
+      }
+    } catch (error) {
+      toast.error("Failed to remove profile picture");
+    }
   };
 
   const handleProfilePicUpload = async (e) => {
@@ -124,9 +159,10 @@ const Profile = () => {
       
       if (response.data.success) {
         setFormData(prev => ({ ...prev, profilePic: response.data.url || response.data.filename }));
+        toast.success("Profile picture updated");
       }
     } catch (error) {
-      alert("Upload failed");
+      toast.error("Upload failed");
     } finally {
       setUploadingPic(false);
       setUploadProgress(0);
@@ -143,8 +179,9 @@ const Profile = () => {
       });
       setHasProfile(true);
       setEditing(false);
+      toast.success("Profile saved successfully");
     } catch (error) {
-      alert("Failed to save profile");
+      toast.error("Failed to save profile");
     } finally {
       setSaving(false);
     }
@@ -202,7 +239,7 @@ const Profile = () => {
             <div className="section-title"><FiUser /> Identity & Contact</div>
             <div className="pic-upload-layout">
               <div className="pic-preview-circle">
-                {formData.profilePic ? (
+                {(formData.profilePic?.filename || (typeof formData.profilePic === 'string' && formData.profilePic)) ? (
                   <img src={getFullImageUrl(formData.profilePic)} alt="Avatar" />
                 ) : (
                   <div className="profile-pic-placeholder">
@@ -218,16 +255,23 @@ const Profile = () => {
                     style={{display: 'none'}} 
                     onChange={handleProfilePicUpload}
                   />
-                  <button type="button" className="edit-button-pro" onClick={() => fileInputRef.current.click()}>
-                    {uploadingPic ? `Uploading ${uploadProgress}%` : "Change Avatar"}
-                  </button>
+                  <div style={{display: 'flex', gap: '10px'}}>
+                    <button type="button" className="edit-button-pro" onClick={() => fileInputRef.current.click()}>
+                      {uploadingPic ? `Uploading ${uploadProgress}%` : "Change Avatar"}
+                    </button>
+                    {formData.profilePic && (
+                      <button type="button" className="edit-button-pro" style={{backgroundColor: '#ef4444', color: 'white'}} onClick={handleRemoveAvatar}>
+                        Remove Avatar
+                      </button>
+                    )}
+                  </div>
                   <p style={{ fontSize: '0.75rem', color: 'var(--text-light)', marginTop: '5px' }}>JPG or PNG, max 2MB</p>
                 </div>
               )}
             </div>
             
             <div className="pro-row" style={{marginTop: '30px'}}>
-              {renderField("Full Legal Name", "name", <FiUser />, "John Doe")}
+              {renderField("User Name", "name", <FiUser />, "John Doe")}
               {renderField("Primary Email", "email", <FiMail />, "john@example.com", "email")}
             </div>
             <div className="pro-row">
@@ -343,7 +387,7 @@ const Profile = () => {
 
           {editing && (
             <footer className="pro-form-footer" style={{ gridColumn: 'span 2', display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '40px' }}>
-              <button type="button" className="pro-btn-cancel" style={{ padding: '15px 30px', borderRadius: '12px' }} onClick={() => setEditing(false)}>
+              <button type="button" className="pro-btn-cancel" style={{ padding: '15px 30px', borderRadius: '12px',backgroundColor:'red' }} onClick={() => setEditing(false)}>
                 Cancel Changes
               </button>
               <button type="submit" className="pro-btn-save" style={{ padding: '15px 50px', borderRadius: '12px' }} disabled={saving}>

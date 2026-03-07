@@ -291,7 +291,8 @@ input:checked + .pro-slider:before { transform: translateX(24px); }
 }
 
 .save-sec-btn:hover {
-    background: var(--primary-hover);
+    background: white;
+    color: black;
     transform: translateY(-2px);
     box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
 }

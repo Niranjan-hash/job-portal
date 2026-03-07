@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import '../component/joblist.css'; // Reusing joblist css
 
 function JobApplicants() {
@@ -56,10 +58,28 @@ function JobApplicants() {
     }
   };
 
+  useGSAP(() => {
+    if (!loading && applicants.length > 0) {
+      gsap.fromTo('.applicant-card', 
+        { opacity: 0, y: 30 }, 
+        { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' }
+      );
+    }
+  }, [loading, applicants]);
+
+  useGSAP(() => {
+    if (showModal) {
+      gsap.fromTo('.applicant-profile-modal-content', 
+        { opacity: 0, scale: 0.9, y: 20 }, 
+        { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(1.7)' }
+      );
+    }
+  }, [showModal]);
+
   const handleUpdateStatus = async (applicationId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/api/applications/update-status/${applicationId}`, { status: newStatus }, {
+      await axios.patch(`http://localhost:5000/api/applications/${applicationId}/status`, { status: newStatus }, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       toast.success(`Applicant ${newStatus}`);
@@ -94,7 +114,7 @@ function JobApplicants() {
       }
     } catch (err) {
       console.error(err);
-      toast.error("Failed to generate AI score");
+      toast.error(err.response?.data?.message || "Failed to generate AI score");
     }
   };
 
@@ -130,6 +150,73 @@ function JobApplicants() {
     setShowModal(false);
     setSelectedApplicant(null);
     setApplicantProfile(null);
+  };
+
+  const renderAiFeedback = (text) => {
+    if (!text) return null;
+    
+    // Split by numbered sections like "1. **Section Name**"
+    const sections = text.split(/(?=\d\.\s\*\*)/);
+    
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        {sections.map((section, index) => {
+          // Extract header and content
+          const headerMatch = section.match(/\d\.\s\*\*(.*?)\*\*/);
+          const header = headerMatch ? headerMatch[1] : "";
+          let content = section.replace(/\d\.\s\*\*(.*?)\*\*/, "").trim();
+          
+          // Handle bullet points
+          const lines = content.split('\n').filter(line => line.trim());
+          
+          // Icon mapping for sections
+          const getIcon = (h) => {
+            if (h.includes('Strength')) return '✅';
+            if (h.includes('Gap') || h.includes('Weakness')) return '❌';
+            if (h.includes('Suggestion') || h.includes('Improvement')) return '💡';
+            if (h.includes('Roadmap')) return '🚀';
+            if (h.includes('Summary')) return '📝';
+            if (h.includes('Score') || h.includes('Quality')) return '📊';
+            return '🔹';
+          };
+
+          return (
+            <div key={index} style={{ marginBottom: '10px' }}>
+              {header && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '1.2rem' }}>{getIcon(header)}</span>
+                  <h4 style={{ margin: 0, color: '#0f172a', fontWeight: '800', fontSize: '1rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                    {header}
+                  </h4>
+                </div>
+              )}
+              <div style={{ paddingLeft: header ? '32px' : '0' }}>
+                {lines.map((line, lIdx) => {
+                  const cleanLine = line.replace(/^\s*[-*•]\s+/, "").trim();
+                  const isBullet = /^\s*[-*•]/.test(line);
+                  
+                  if (isBullet) {
+                    return (
+                      <div key={lIdx} style={{ display: 'flex', gap: '10px', marginBottom: '6px', alignItems: 'flex-start' }}>
+                        <span style={{ color: '#6366f1', fontWeight: 'bold' }}>•</span>
+                        <p style={{ margin: 0, fontSize: '0.95rem', lineHeight: '1.5', color: '#334155', fontWeight: '500' }}>
+                          {cleanLine}
+                        </p>
+                      </div>
+                    );
+                  }
+                  return (
+                    <p key={lIdx} style={{ margin: '0 0 10px 0', fontSize: '0.95rem', lineHeight: '1.6', color: '#334155', fontWeight: '500' }}>
+                      {line}
+                    </p>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
   };
 
   return (
@@ -283,7 +370,7 @@ function JobApplicants() {
           alignItems: 'center',
           zIndex: 1000
         }} onClick={closeProfile}>
-          <div style={{
+          <div className="applicant-profile-modal-content" style={{
             backgroundColor: '#ffffff',
             color: '#000000',
             padding: '40px',
@@ -362,11 +449,13 @@ function JobApplicants() {
                     border: `2px solid ${getScoreColor(selectedApplicant.aiScore)}`,
                     marginBottom: '25px'
                   }}>
-                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px'}}>
-                      <span style={{fontWeight: '700', color: '#166534'}}>Match Quality</span>
-                      <span style={{ fontSize: '1.75rem', fontWeight: '900', color: getScoreColor(selectedApplicant.aiScore) }}>{selectedApplicant.aiScore}%</span>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px'}}>
+                      <span style={{fontWeight: '800', color: '#166534', fontSize: '1.1rem'}}>Match Quality</span>
+                      <span style={{ fontSize: '2rem', fontWeight: '900', color: getScoreColor(selectedApplicant.aiScore) }}>{selectedApplicant.aiScore}%</span>
                     </div>
-                    <p style={{margin: 0, color: '#1e293b', fontStyle: 'italic', lineHeight: '1.6'}}>"{selectedApplicant.aiFeedback}"</p>
+                    <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', padding: '20px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.05)' }}>
+                      {renderAiFeedback(selectedApplicant.aiFeedback)}
+                    </div>
                   </div>
                 ) : (
                   <div style={{padding: '20px', backgroundColor: '#f8fafc', borderRadius: '16px', marginBottom: '25px', textAlign: 'center', border: '1.5px dashed #e2e8f0'}}>
@@ -494,7 +583,7 @@ function JobApplicants() {
                 onClick={closeProfile}
                 style={{
                   padding: '12px 40px',
-                  backgroundColor: '#f1f5f9',
+                  backgroundColor: '#f5f5f5',
                   color: '#475569',
                   border: '1px solid #e2e8f0',
                   borderRadius: '10px',

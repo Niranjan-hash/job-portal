@@ -1,6 +1,7 @@
 const express = require('express')
 const JobDetail = require('../model/jobdetail')
 const Profile = require('../model/profile')
+const { authenticateToken } = require('../middleware/auth')
 const router = express.Router()
 
 router.get('/', async (req, res) => {
@@ -50,9 +51,8 @@ router.get('/', async (req, res) => {
   }
 })
 
-module.exports = router
-
-router.get('/users', async (req, res) => {
+// Secure user search route
+router.get('/users', authenticateToken, async (req, res) => {
   try {
     const { search } = req.query;
     const filter = {};
@@ -66,10 +66,16 @@ router.get('/users', async (req, res) => {
       ];
     }
 
-    const users = await Profile.find(filter).lean();
+    // Project only safe fields
+    const users = await Profile.find(filter)
+      .select('name profilePic skills location bio projects')
+      .lean();
     res.json(users);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
+
+module.exports = router
+

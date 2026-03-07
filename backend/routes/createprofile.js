@@ -20,14 +20,14 @@ router.post('/create', authenticateToken, async (req, res) => {
   try {
     const userId = req.userId;
     
-    if (!req.body.name || !req.body.email) {
+    const existingProfile = await Profile.findOne({ userId });
+    
+    if (!existingProfile && (!req.body.name || !req.body.email)) {
       return res.status(400).json({
         success: false,
-        message: 'Name and email are required'
+        message: 'Name and email are required for a new profile'
       });
     }
-
-    const existingProfile = await Profile.findOne({ userId });
     
 const mongoose = require('mongoose');
 
@@ -261,16 +261,21 @@ router.delete('/delete-profile-pic', authenticateToken, async (req, res) => {
   try {
     const userId = req.userId;
     const profile = await Profile.findOne({ userId });
-    
-    if (!profile || !profile.profilePic || !profile.profilePic.path) {
-      return res.status(404).json({
-        success: false,
-        message: 'No profile picture found'
-      });
+
+    if (!profile) {
+      return res.status(404).json({ success: false, message: 'Profile not found' });
     }
 
-    if (fs.existsSync(profile.profilePic.path)) {
-      fs.unlinkSync(profile.profilePic.path);
+    // If there's a file path, try to delete it from disk
+    if (profile.profilePic && profile.profilePic.path) {
+      if (fs.existsSync(profile.profilePic.path)) {
+        try {
+          fs.unlinkSync(profile.profilePic.path);
+        } catch (err) {
+          console.error("Error unlinking file:", err);
+          // Continue anyway to clear the DB state
+        }
+      }
     }
 
     profile.profilePic = {

@@ -1,12 +1,38 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { FiMapPin, FiBriefcase } from 'react-icons/fi';
+import { useGSAP } from '@gsap/react';
+import gsap from 'gsap';
 import './joblist.css';
 
-function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar }) {
+function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar, onSearchChange }) {
   const [selectedJob, setSelectedJob] = useState(null);
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState('');
+
+  useGSAP(() => {
+    if (selectedJob) {
+      const tl = gsap.timeline();
+      tl.fromTo('.job_detail', 
+          { opacity: 0, y: 40, scale: 0.98, filter: 'blur(8px)' }, 
+          { opacity: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.7, ease: 'expo.out' }
+        )
+        .fromTo('.job_detail h1, .company-name', 
+          { opacity: 0, x: -20 }, 
+          { opacity: 1, x: 0, duration: 0.5, stagger: 0.1, ease: 'power3.out' }, 
+          "-=0.5")
+        .fromTo('.job-meta-grid .meta-item, .skills-section, .description-section, .contact-info, .action-area', 
+          { opacity: 0, y: 20 }, 
+          { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out' }, 
+          "-=0.4"
+        );
+    } else if (jobs && jobs.length > 0) {
+      gsap.fromTo('.job-card', 
+        { opacity: 0, y: 50, scale: 0.95 }, 
+        { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: 'back.out(1.2)' }
+      );
+    }
+  }, [jobs, selectedJob]);
 
   const applyForJob = async (jobId) => {
     try {
@@ -117,10 +143,11 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar }) {
                 className="apply-btn" 
                 onClick={() => applyForJob(selectedJob._id)}
                 disabled={applying}
+                style={{ color: '#ffffff' }}
               >
-                {applying ? 'Applying...' : 'Apply for this Position'}
+                {applying ? 'Applying...' : 'Apply'}
               </button>
-              {applyMsg && <p className="apply-msg" style={{ marginTop: '15px', fontWeight: '600', color: applyMsg.includes('success') ? 'var(--accent)' : 'var(--danger)' }}>{applyMsg}</p>}
+              {applyMsg && <p className="apply-msg" style={{ marginTop: '15px', fontWeight: '600', color: '#000000' }}>{applyMsg}</p>}
           </div>
         </div>
       </div>
