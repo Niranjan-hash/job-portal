@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import '../component/joblist.css'; // Reusing joblist css
+import defaultProfile from '../assets/default-profile.png';
 
 function JobApplicants() {
   const [apiUrl] = useState('http://localhost:5000');
@@ -32,10 +33,21 @@ function JobApplicants() {
   const [applicantProfile, setApplicantProfile] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [fetchingProfile, setFetchingProfile] = useState(false);
+  
+  // Sorting and Filtering State
+  const [sort, setSort] = useState('newest');
+  const [filters, setFilters] = useState({
+    experience: '',
+    skill: '',
+    education: '',
+    location: '',
+    score: ''
+  });
+  const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
     fetchApplicants();
-  }, [jobId]);
+  }, [jobId, sort, filters]);
 
   const fetchApplicants = async () => {
     try {
@@ -46,7 +58,14 @@ function JobApplicants() {
          return;
       }
 
-      const response = await axios.get(`http://localhost:5000/api/applications/job/${jobId}`, {
+      const params = new URLSearchParams({ sort });
+      if (filters.experience) params.append('experience', filters.experience);
+      if (filters.skill) params.append('skill', filters.skill);
+      if (filters.education) params.append('education', filters.education);
+      if (filters.location) params.append('location', filters.location);
+      if (filters.score) params.append('score', filters.score);
+
+      const response = await axios.get(`http://localhost:5000/api/applications/job/${jobId}?${params.toString()}`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       setApplicants(response.data.applicants);
@@ -59,19 +78,50 @@ function JobApplicants() {
   };
 
   useGSAP(() => {
+    // Initial entrance for header and filters
+    gsap.fromTo('.joblist-header', 
+      { opacity: 0, y: -20 }, 
+      { opacity: 1, y: 0, duration: 0.8, ease: 'power4.out' }
+    );
+    
+    gsap.fromTo('.filter-panel', 
+      { opacity: 0, scale: 0.98, y: 20 }, 
+      { opacity: 1, scale: 1, y: 0, duration: 1, delay: 0.2, ease: 'expo.out' }
+    );
+
     if (!loading && applicants.length > 0) {
       gsap.fromTo('.applicant-card', 
-        { opacity: 0, y: 30 }, 
-        { opacity: 1, y: 0, duration: 0.6, stagger: 0.1, ease: 'power2.out' }
+        { 
+          opacity: 0, 
+          y: 40,
+          rotationX: -10,
+          perspective: 1000
+        }, 
+        { 
+          opacity: 1, 
+          y: 0, 
+          rotationX: 0,
+          duration: 0.8, 
+          stagger: {
+            each: 0.1,
+            from: "start"
+          }, 
+          ease: 'power3.out' 
+        }
       );
     }
   }, [loading, applicants]);
 
   useGSAP(() => {
     if (showModal) {
-      gsap.fromTo('.applicant-profile-modal-content', 
-        { opacity: 0, scale: 0.9, y: 20 }, 
-        { opacity: 1, scale: 1, y: 0, duration: 0.4, ease: 'back.out(1.7)' }
+      const tl = gsap.timeline();
+      tl.fromTo('.applicant-profile-modal-overlay',
+        { opacity: 0 },
+        { opacity: 1, duration: 0.3 }
+      ).fromTo('.applicant-profile-modal-content', 
+        { opacity: 0, scale: 0.9, y: 30, rotationX: 15 }, 
+        { opacity: 1, scale: 1, y: 0, rotationX: 0, duration: 0.6, ease: 'back.out(1.2)' },
+        "-=0.2"
       );
     }
   }, [showModal]);
@@ -220,10 +270,157 @@ function JobApplicants() {
   };
 
   return (
-    <div className="joblist-container" style={{ backgroundColor: 'var(--bg-main)', color: 'white', minHeight: '100vh' }}>
-      <div className="joblist-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px'}}>
-        <h1 style={{color: 'white'}}>Job Applicants</h1>
+    <div className="joblist-container" style={{ 
+      backgroundColor: '#0f172a', 
+      backgroundImage: 'radial-gradient(circle at top right, rgba(99, 102, 241, 0.05), transparent), radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.05), transparent)',
+      color: 'white', 
+      minHeight: '100vh',
+      padding: '40px 60px'
+    }}>
+      <div className="joblist-header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px'}}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <h1 style={{color: 'white', margin: 0, fontSize: '2.5rem', fontWeight: '800', letterSpacing: '-1px'}}>Job Applicants</h1>
+          <p style={{ color: '#94a3b8', fontSize: '1rem', fontWeight: '500' }}>Review and shortlist the best talent for your team.</p>
+        </div>
+        
+        <div style={{display: 'flex', gap: '20px', alignItems: 'center'}}>
+           <button 
+            onClick={() => setShowFilters(!showFilters)}
+            style={{
+              padding: '10px 20px',
+              borderRadius: '12px',
+              border: 'none',
+              background: showFilters ? 'var(--primary-gradient)' : 'rgba(255, 255, 255, 0.1)',
+              color: 'white',
+              fontWeight: '700',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'all 0.3s ease',
+              boxShadow: showFilters ? '0 10px 20px rgba(99, 102, 241, 0.3)' : 'none'
+            }}
+          >
+            <span>Filter Applicants</span>
+            <span style={{ transform: showFilters ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}>▼</span>
+          </button>
+
+          <div style={{display: 'flex', gap: '15px', alignItems: 'center'}}>
+            <span style={{color: '#94a3b8', fontSize: '0.9rem', fontWeight: '600'}}>Sort by:</span>
+            <select 
+              value={sort} 
+              onChange={(e) => setSort(e.target.value)}
+              style={{ padding: '8px 12px', borderRadius: '8px', border: '1px solid #334155', background: '#1e293b', color: 'white', outline: 'none', cursor: 'pointer' }}
+            >
+              <option value="newest">Newest First</option>
+              <option value="oldest">Oldest First</option>
+            </select>
+          </div>
+        </div>
       </div>
+
+      {showFilters && (
+        <div className="filter-panel" style={{ 
+          background: 'rgba(30, 41, 59, 0.4)', 
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          padding: '30px', 
+          borderRadius: '24px', 
+          marginBottom: '40px', 
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '25px',
+          alignItems: 'end',
+          boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)'
+        }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Experience</label>
+            <select 
+              value={filters.experience} 
+              onChange={(e) => setFilters({...filters, experience: e.target.value})}
+              style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(15, 23, 42, 0.6)', color: 'white', fontWeight: '600', outline: 'none', transition: 'all 0.3s' }}
+            >
+              <option value="">Any Experience</option>
+              <option value="0-2">0-2 Years</option>
+              <option value="2-5">2-5 Years</option>
+              <option value="5+">5+ Years</option>
+            </select>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Skill Keyword</label>
+            <input 
+              type="text" 
+              placeholder="e.g. React, Node.js" 
+              value={filters.skill} 
+              onChange={(e) => setFilters({...filters, skill: e.target.value})}
+              style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(15, 23, 42, 0.6)', color: 'white', fontWeight: '600', outline: 'none', transition: 'all 0.3s' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Education</label>
+            <input 
+              type="text" 
+              placeholder="e.g. B.Tech, MCA" 
+              value={filters.education} 
+              onChange={(e) => setFilters({...filters, education: e.target.value})}
+              style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(15, 23, 42, 0.6)', color: 'white', fontWeight: '600', outline: 'none', transition: 'all 0.3s' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Location</label>
+            <input 
+              type="text" 
+              placeholder="e.g. Chennai, Remote" 
+              value={filters.location} 
+              onChange={(e) => setFilters({...filters, location: e.target.value})}
+              style={{ padding: '12px 16px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)', background: 'rgba(15, 23, 42, 0.6)', color: 'white', fontWeight: '600', outline: 'none', transition: 'all 0.3s' }}
+            />
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <label style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1px' }}>Min Match Score ({filters.score || 0}%)</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(15, 23, 42, 0.6)', padding: '10px 15px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <input 
+                type="range" 
+                min="0" 
+                max="100" 
+                value={filters.score || 0} 
+                onChange={(e) => setFilters({...filters, score: e.target.value})}
+                style={{ flex: 1, cursor: 'pointer', accentColor: '#6366f1' }}
+              />
+            </div>
+          </div>
+
+          <button 
+            onClick={() => setFilters({ experience: '', skill: '', education: '', location: '', score: '' })}
+            style={{ 
+              padding: '12px 24px', 
+              borderRadius: '12px', 
+              border: 'none', 
+              background: 'rgba(239, 68, 68, 0.1)', 
+              color: '#ef4444', 
+              fontWeight: '800', 
+              cursor: 'pointer',
+              transition: 'all 0.3s',
+              border: '1px solid rgba(239, 68, 68, 0.2)'
+            }}
+            onMouseOver={e => {
+              e.currentTarget.style.background = '#ef4444';
+              e.currentTarget.style.color = 'white';
+            }}
+            onMouseOut={e => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)';
+              e.currentTarget.style.color = '#ef4444';
+            }}
+          >
+            Reset Filters
+          </button>
+        </div>
+      )}
 
       {loading && <div className="loading-message">Loading applicants...</div>}
       {error && <div className="error-message">{error}</div>}
@@ -232,7 +429,26 @@ function JobApplicants() {
         {applicants.length === 0 && !loading && <p>No applicants yet for this job.</p>}
         
         {applicants.map(app => (
-          <div className="job-card applicant-card" key={app._id} style={{cursor: 'default'}}>
+          <div className="job-card applicant-card" key={app._id} style={{
+            cursor: 'default',
+            padding: '25px',
+            borderRadius: '24px',
+            background: 'rgba(255, 255, 255, 0.98)', /* High-end card feel on dark background */
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
+            border: '1px solid rgba(0, 0, 0, 0.05)',
+            transformStyle: 'preserve-3d',
+            transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+          }}
+          onMouseOver={e => {
+            e.currentTarget.style.transform = 'translateY(-10px)';
+            e.currentTarget.style.boxShadow = '0 25px 60px rgba(0, 0, 0, 0.2)';
+            e.currentTarget.style.borderColor = '#6366f1';
+          }}
+          onMouseOut={e => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.1)';
+            e.currentTarget.style.borderColor = 'rgba(0, 0, 0, 0.05)';
+          }}>
             <div style={{display: 'flex', alignItems: 'center', marginBottom: '15px', gap: '15px'}}>
                {app.profile?.profilePic ? (
                  <img 
@@ -241,24 +457,15 @@ function JobApplicants() {
                    style={{width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #6366f1', padding: '2px', background: 'white'}}
                  />
                ) : (
-                 <div style={{
-                   width: '60px', 
-                   height: '60px', 
-                   borderRadius: '50%', 
-                   background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                   color: 'white',
-                   display: 'flex',
-                   alignItems: 'center',
-                   justifyContent: 'center',
-                   fontSize: '22px',
-                   fontWeight: '800',
-                   boxShadow: '0 4px 10px rgba(99, 102, 241, 0.3)'
-                 }}>
-                   {(app.profile?.name || app.applicantName).charAt(0).toUpperCase()}
-                 </div>
+                 <img 
+                   src={defaultProfile} 
+                   alt="Profile" 
+                   style={{width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #6366f1', padding: '2px', background: 'white'}}
+                 />
                )}
                <div style={{flex: 1}}>
                   <h3 style={{margin: 0, fontSize: '1.2rem', color: '#000000'}}>{app.profile?.name || app.applicantName}</h3>
+                  <p style={{ margin: '4px 0 0 0', fontWeight: '700', color: '#6366f1', fontSize: '0.85rem' }}>{app.jobTitle} • {app.company}</p>
                   <div style={{display: 'flex', gap: '8px', alignItems: 'center', marginTop: '4px'}}>
                     <span className={`status-badge ${app.status}`}>{app.status}</span>
                     {app.aiFeedback && (
@@ -358,29 +565,32 @@ function JobApplicants() {
 
       {/* Applicant Profile Modal */}
       {showModal && selectedApplicant && (
-        <div style={{
+        <div className="applicant-profile-modal-overlay" style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          backgroundColor: 'rgba(15, 23, 42, 0.8)',
+          backdropFilter: 'blur(12px)',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          zIndex: 1000
+          zIndex: 2000
         }} onClick={closeProfile}>
           <div className="applicant-profile-modal-content" style={{
             backgroundColor: '#ffffff',
             color: '#000000',
-            padding: '40px',
-            borderRadius: '24px',
-            width: '90%',
-            maxWidth: '700px',
-            maxHeight: '90vh',
+            padding: '50px',
+            borderRadius: '32px',
+            width: '95%',
+            maxWidth: '850px',
+            maxHeight: '85vh',
             overflowY: 'auto',
             position: 'relative',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
+            boxShadow: '0 30px 100px rgba(0, 0, 0, 0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            perspective: '1000px'
           }} onClick={e => e.stopPropagation()}>
             <button 
               onClick={closeProfile}
@@ -406,21 +616,11 @@ function JobApplicants() {
                     style={{width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #6366f1', padding: '3px', background: 'white'}}
                   />
                ) : (
-                 <div style={{
-                   width: '90px', 
-                   height: '90px', 
-                   borderRadius: '50%', 
-                   background: 'linear-gradient(135deg, #6366f1 0%, #a855f7 100%)',
-                   color: 'white',
-                   display: 'flex',
-                   alignItems: 'center',
-                   justifyContent: 'center',
-                   fontSize: '36px',
-                   fontWeight: '800',
-                   boxShadow: '0 8px 20px rgba(99, 102, 241, 0.3)'
-                 }}>
-                   {(selectedApplicant.profile?.name || selectedApplicant.applicantName).charAt(0).toUpperCase()}
-                 </div>
+                  <img 
+                    src={defaultProfile} 
+                    alt="Profile" 
+                    style={{width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '4px solid #6366f1', padding: '3px', background: 'white'}}
+                  />
                )}
                <div>
                   <h2 style={{margin: 0, color: '#0f172a', fontSize: '1.8rem'}}>{selectedApplicant.profile?.name || selectedApplicant.applicantName}</h2>

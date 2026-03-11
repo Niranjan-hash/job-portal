@@ -18,7 +18,7 @@ router.post('/apply/:jobId', authenticateToken, async (req, res) => {
     }
 
     // 2. Prevent applying to own job
-    if (job.postedby === userId) {
+    if (job.postedby.toString() === userId.toString()) {
       return res.status(400).json({ success: false, message: 'You cannot apply to your own job' });
     }
 
@@ -69,7 +69,8 @@ router.post('/apply/:jobId', authenticateToken, async (req, res) => {
         applicationId: application._id,
         jobId: job._id,
         jobTitle: job.title,
-        senderName: application.applicantName, // Changed from applicantName for frontend compatibility
+        company: job.company, // Added company
+        senderName: application.applicantName, 
         resumeUrl: application.resumeUrl,
         appliedAt: application.appliedAt
       }
@@ -171,8 +172,6 @@ router.patch('/:applicationId/status', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/applications/job/:jobId
-// For Recruiters to see who applied to a specific job
 router.get('/job/:jobId', authenticateToken, async (req, res) => {
   try {
     const { jobId } = req.params;
@@ -184,9 +183,19 @@ router.get('/job/:jobId', authenticateToken, async (req, res) => {
     }
 
     const mongoose = require('mongoose');
-    const applicants = await Application.aggregate([
-      { $match: { jobId: new mongoose.Types.ObjectId(jobId) } },
-      { $sort: { createdAt: -1 } },
+    const { sort, experience, skill, education, location, score } = req.query;
+
+    // Build Match for Applications
+    const matchStage = { jobId: new mongoose.Types.ObjectId(jobId) };
+    
+    // Sort logic
+    let sortStage = { appliedAt: -1 }; // Default: Newest
+    if (sort === 'oldest') {
+      sortStage = { appliedAt: 1 };
+    }
+
+    const pipeline = [
+      { $match: matchStage },
       {
         $lookup: {
           from: 'profiles',
@@ -196,19 +205,71 @@ router.get('/job/:jobId', authenticateToken, async (req, res) => {
         }
       },
       {
-        $addFields: {
-          profile: { $arrayElemAt: ['$profileData', 0] }
+        $lookup: {
+          from: 'jobdetails',
+          localField: 'jobId',
+          foreignField: '_id',
+          as: 'jobData'
         }
       },
       {
-        $project: {
-          profileData: 0,
-          'profile._id': 0,
-          'profile.userId': 0,
-          'profile.__v': 0
+        $addFields: {
+          profile: { $arrayElemAt: ['$profileData', 0] },
+          jobTitle: { $arrayElemAt: ['$jobData.title', 0] },
+          company: { $arrayElemAt: ['$jobData.company', 0] }
         }
       }
-    ]);
+    ];
+
+    // Smart Filters based on Profile / Application fields
+    const postLookupMatch = {};
+
+    // 1. Experience Filter
+    if (experience) {
+      if (experience === '0-2') {
+        postLookupMatch['profile.jobexpirience'] = { $regex: /^[0-2](\.\d+)?(\s|$)/ }; // Simple regex for numeric start
+      } else if (experience === '2-5') {
+        postLookupMatch['profile.jobexpirience'] = { $regex: /^[2-5](\.\d+)?(\s|$)/ };
+      } else if (experience === '5+') {
+        postLookupMatch['profile.jobexpirience'] = { $regex: /^([5-9]|\d{2,})(\.\d+)?(\s|$)/ };
+      }
+    }
+
+    // 2. Skill Filter
+    if (skill) {
+      postLookupMatch['profile.skills'] = { $regex: new RegExp(skill, 'i') };
+    }
+
+    // 3. Education Filter
+    if (education) {
+      postLookupMatch['profile.degree'] = { $regex: new RegExp(education, 'i') };
+    }
+
+    // 4. Location Filter
+    if (location) {
+      postLookupMatch['profile.location'] = { $regex: new RegExp(location, 'i') };
+    }
+
+    // 5. Resume Score Filter
+    if (score) {
+      postLookupMatch.aiScore = { $gte: parseInt(score) };
+    }
+
+    if (Object.keys(postLookupMatch).length > 0) {
+      pipeline.push({ $match: postLookupMatch });
+    }
+
+    pipeline.push({ $sort: sortStage });
+    pipeline.push({
+      $project: {
+        profileData: 0,
+        'profile._id': 0,
+        'profile.userId': 0,
+        'profile.__v': 0
+      }
+    });
+
+    const applicants = await Application.aggregate(pipeline);
     
     res.json({ success: true, applicants });
   } catch (error) {

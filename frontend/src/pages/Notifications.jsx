@@ -14,6 +14,7 @@ import {
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import './notification.css'
+import defaultProfile from '../assets/default-profile.png';
 
 const Notifications = () => {
   const [apiUrl] = useState('http://localhost:5000');
@@ -175,9 +176,7 @@ const Notifications = () => {
                     {notification.data?.senderPic || (notification.type === 'STATUS_UPDATE' && userProfilePic) ? (
                       <img src={getFullImageUrl(notification.data?.senderPic || userProfilePic)} alt="Sender" className="sender-avatar-small" />
                     ) : (
-                      <div className="sender-avatar-placeholder">
-                        {notification.data?.senderName ? notification.data.senderName[0].toUpperCase() : 'U'}
-                      </div>
+                      <img src={defaultProfile} alt="Sender" className="sender-avatar-small" />
                     )}
                     <div className="sender-info-group">
                       <span className="type-label">{notification.type.replace('_', ' ')}</span>

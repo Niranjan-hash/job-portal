@@ -5,7 +5,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import './joblist.css';
 
-function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar, onSearchChange }) {
+function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar, onSearchChange, currentUserId }) {
   const [selectedJob, setSelectedJob] = useState(null);
   const [applying, setApplying] = useState(false);
   const [applyMsg, setApplyMsg] = useState('');
@@ -138,17 +138,23 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar, onSearchC
             </div>
           )}
 
-          <div className="action-area" style={{ marginTop: '20px' }}>
-             <button 
-                className="apply-btn" 
-                onClick={() => applyForJob(selectedJob._id)}
-                disabled={applying}
-                style={{ color: '#ffffff' }}
-              >
-                {applying ? 'Applying...' : 'Apply'}
-              </button>
-              {applyMsg && <p className="apply-msg" style={{ marginTop: '15px', fontWeight: '600', color: '#000000' }}>{applyMsg}</p>}
-          </div>
+            {selectedJob.postedby?.toString() !== currentUserId?.toString() ? (
+              <>
+                <button 
+                  className="apply-btn" 
+                  onClick={() => applyForJob(selectedJob._id)}
+                  disabled={applying}
+                  style={{ color: '#ffffff' }}
+                >
+                  {applying ? 'Applying...' : 'Apply'}
+                </button>
+                {applyMsg && <p className="apply-msg" style={{ marginTop: '15px', fontWeight: '600', color: '#000000' }}>{applyMsg}</p>}
+              </>
+            ) : (
+              <div style={{ padding: '15px', background: 'rgba(99, 102, 241, 0.1)', borderRadius: '12px', border: '1px solid rgba(99, 102, 241, 0.2)', textAlign: 'center' }}>
+                <p style={{ margin: 0, fontWeight: '700', color: '#6366f1' }}>You are the recruiter for this job</p>
+              </div>
+            )}
         </div>
       </div>
     );

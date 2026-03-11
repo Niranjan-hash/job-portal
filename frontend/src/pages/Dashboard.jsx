@@ -23,6 +23,7 @@ import {
 } from "react-icons/fi";
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import defaultProfile from '../assets/default-profile.png';
 
 function Dashboard() {
   const [userData, setUserData] = useState({
@@ -30,7 +31,8 @@ function Dashboard() {
     email: "",
     profilePicture: "",
     appliedJobs: 0,
-    hasResume: false
+    hasResume: false,
+    userId: ""
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -47,7 +49,8 @@ function Dashboard() {
   // Search Filters
   const [filters, setFilters] = useState({
     search: '',
-    location: ''
+    location: '',
+    dateFilter: 'all'
   });
 
   const uniqueTitles = useMemo(() => {
@@ -104,9 +107,14 @@ function Dashboard() {
     }
 
     tl.fromTo('.main-content', 
-        { opacity: 0, y: 30, filter: 'blur(8px)' }, 
-        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8 }, 
+        { opacity: 0, y: 30, filter: 'blur(10px)' }, 
+        { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1, ease: 'expo.out' }, 
         isVisible ? "-=0.4" : 0
+      )
+      .fromTo('.joblist-container',
+        { opacity: 0, scale: 0.98 },
+        { opacity: 1, scale: 1, duration: 0.8, ease: 'power2.out' },
+        "-=0.6"
       );
   }, [loading, isVisible]);
 
@@ -155,6 +163,9 @@ function Dashboard() {
       }
       if (filters.location) {
          params.append('location', filters.location);
+      }
+      if (filters.dateFilter && filters.dateFilter !== 'all') {
+         params.append('dateFilter', filters.dateFilter);
       }
       
       const response = await axios.get(`http://localhost:5000/search?${params.toString()}`);
@@ -223,6 +234,9 @@ function Dashboard() {
           profilePicture = picData.url.startsWith('http') ? picData.url : `http://localhost:5000${picData.url}`;
         }
         setShowProfilePic(true);
+      } else {
+        profilePicture = defaultProfile;
+        setShowProfilePic(true);
       }
 
       setUserData({
@@ -230,7 +244,8 @@ function Dashboard() {
         email: profileData.email || "user@example.com",
         profilePicture: profilePicture,
         appliedJobs: profileData.appliedJobs || 0,
-        hasResume: profileData.hasResume || false
+        hasResume: profileData.hasResume || false,
+        userId: profileData.userId || ""
       });
 
     } catch (error) {
@@ -286,7 +301,7 @@ function Dashboard() {
             {showProfilePic && userData.profilePicture ? (
               <img src={userData.profilePicture} alt="Profile" className="menu-profile-pic" onError={handleImageError} />
             ) : (
-              <div className="menu-profile-pic-placeholder">{getInitials()}</div>
+              <img src={defaultProfile} alt="Profile" className="menu-profile-pic" />
             )}
             <div className="menu-profile-info">
               <h3>{userData.name}</h3>
@@ -396,6 +411,22 @@ function Dashboard() {
                         </datalist>
                       </div>
 
+                      <div className="date-filter-section" style={{ display: 'flex', alignItems: 'center', padding: '0 15px' }}>
+                        <div className="search-divider"></div>
+                        <FiClock style={{ marginRight: '8px', color: '#64748b' }} />
+                        <select 
+                          name="dateFilter" 
+                          value={filters.dateFilter} 
+                          onChange={handleFilterChange}
+                          style={{ border: 'none', background: 'transparent', outline: 'none', color: '#475569', fontWeight: '500', cursor: 'pointer' }}
+                        >
+                          <option value="all">Any Time</option>
+                          <option value="24h">Past 24 hours</option>
+                          <option value="7d">Past Week</option>
+                          <option value="30d">Past Month</option>
+                        </select>
+                      </div>
+
                       <button 
                         type="button" 
                         className="search-close-btn-pro"
@@ -435,7 +466,11 @@ function Dashboard() {
         )}
 
         {/* Unique Title Bar */}
-        <div className="horizontal-title-bar-container">
+        <div className="horizontal-title-bar-container" style={{
+          borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+          background: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(10px)'
+        }}>
           <div className="horizontal-title-bar">
             <div className="horizontal-title-bar-content">
               {uniqueTitles.concat(uniqueTitles).map((title, index) => (
@@ -455,7 +490,7 @@ function Dashboard() {
           </div>
         </div>
         
-        <div className="page-content">
+        <div className="page-content" style={{ padding: '60px 80px' }}>
           <div className="dashboard-layout">
             <div className="joblist-container">
               <Joblist 
@@ -464,6 +499,7 @@ function Dashboard() {
                 error={jobsError}
                 showSearchbar={show} 
                 hideSearchbar={hide} 
+                currentUserId={userData.userId}
                 onSearchChange={(title) => {
                   setFilters({ ...filters, search: title });
                   setIsSearchExpanded(true);

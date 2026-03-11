@@ -43,6 +43,25 @@ router.get('/', async (req, res) => {
        filter.salary = new RegExp(salary.trim(), "i");
     }
 
+    // 5. Date Filter (New Feature)
+    const { dateFilter } = req.query;
+    if (dateFilter && dateFilter !== 'all') {
+      const now = new Date();
+      let startDate;
+      
+      if (dateFilter === '24h') {
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      } else if (dateFilter === '7d') {
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (dateFilter === '30d') {
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      }
+      
+      if (startDate) {
+        filter.createdAt = { $gte: startDate };
+      }
+    }
+
     const jobs = await JobDetail.find(filter).lean()
     res.json(jobs)
   } catch (err) {

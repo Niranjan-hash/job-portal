@@ -213,19 +213,19 @@
 
 /* Top Header - Glassmorphism Refined */
 .top-header {
-    background: rgba(30, 41, 59, 0.6); /* Slate-based glass */
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    padding: 0 40px;
+    background: rgba(30, 41, 59, 0.4); /* Reduced opacity for better glass effect */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 0 60px; /* Increased padding */
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 100px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     z-index: 1001;
     position: sticky;
     top: 0;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+    box-shadow: 0 15px 40px rgba(0, 0, 10, 0.4);
 }
 
 .menu-toggle-btn {
@@ -262,12 +262,12 @@
     width: 100%;
     display: flex;
     align-items: center;
-    background: #ffffff;
-    border: none;
-    border-radius: 14px;
-    padding: 2px 8px;
-    transition: var(--transition);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.95); /* Nearly white with tiny transparency */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px; /* More rounded */
+    padding: 6px 14px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .search-bar-container:focus-within {
@@ -297,10 +297,11 @@
 }
 
 .search-toggle-btn:hover {
-    background: #4f46e5;
+    background: var(--primary-gradient);
     color: white;
-    transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(79, 70, 229, 0.4);
+    transform: translateY(-4px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(99, 102, 241, 0.4);
+    border-color: transparent;
 }
 
 .search-toggle-btn:hover {

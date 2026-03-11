@@ -21,6 +21,7 @@ import {
   FiX
 } from 'react-icons/fi';
 import './profile.css';
+import defaultProfile from '../assets/default-profile.png';
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -242,9 +243,7 @@ const Profile = () => {
                 {(formData.profilePic?.filename || (typeof formData.profilePic === 'string' && formData.profilePic)) ? (
                   <img src={getFullImageUrl(formData.profilePic)} alt="Avatar" />
                 ) : (
-                  <div className="profile-pic-placeholder">
-                    {formData.name ? formData.name[0].toUpperCase() : <FiUser />}
-                  </div>
+                  <img src={defaultProfile} alt="Default Avatar" />
                 )}
               </div>
               {editing && (

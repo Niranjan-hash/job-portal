@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './joblist.css'; // Reusing joblist CSS for grid and cards
+import defaultProfile from '../assets/default-profile.png';
 
 function UserList({ users, loading, error, hideSearchbar }) {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -24,9 +25,11 @@ function UserList({ users, loading, error, hideSearchbar }) {
                 style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} 
               />
             ) : (
-              <div style={{ width: '80px', height: '80px', borderRadius: '50%', background: '#4B79A1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '32px' }}>
-                {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : 'U'}
-              </div>
+              <img 
+                src={defaultProfile} 
+                alt="Profile" 
+                style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover' }} 
+              />
             )}
             <div>
               <h1 className="title" style={{ margin: 0, padding: 0 }}>{selectedUser.name}</h1>
@@ -111,9 +114,11 @@ function UserList({ users, loading, error, hideSearchbar }) {
                   style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} 
                 />
               ) : (
-                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: '#4B79A1', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px' }}>
-                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                </div>
+                <img 
+                  src={defaultProfile} 
+                  alt="Profile" 
+                  style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'cover' }} 
+                />
               )}
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.1rem' }}>{user.name}</h3>
