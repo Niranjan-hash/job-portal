@@ -485,7 +485,7 @@
     display: flex;
     gap: 15px;
     padding: 0 30px;
-    animation: scrollHorizontal 40s linear infinite;
+    animation: scrollHorizontal 100s linear infinite; /* Slowed down heavily */
     width: max-content;
 }
 
@@ -494,9 +494,9 @@
     background: #f1f5f9;
     border: 1px solid #e2e8f0;
     border-radius: 100px;
-    color: var(--text-muted);
+    color: #000000; /* Extra dark black text */
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 800; /* Extra bold for contrast */
     cursor: pointer;
     transition: var(--transition);
     white-space: nowrap;

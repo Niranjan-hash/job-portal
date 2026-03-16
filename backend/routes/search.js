@@ -1,6 +1,7 @@
 const express = require('express')
 const JobDetail = require('../model/jobdetail')
 const Profile = require('../model/profile')
+const User = require('../model/newuser')
 const { authenticateToken } = require('../middleware/auth')
 const router = express.Router()
 
@@ -47,23 +48,46 @@ router.get('/', async (req, res) => {
     const { dateFilter } = req.query;
     if (dateFilter && dateFilter !== 'all') {
       const now = new Date();
-      let startDate;
+      let startDate, endDate;
       
       if (dateFilter === '24h') {
         startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        endDate = now;
       } else if (dateFilter === '7d') {
         startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
       } else if (dateFilter === '30d') {
         startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      } else if (dateFilter === '365d') {
+        startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+        endDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       }
       
       if (startDate) {
         filter.createdAt = { $gte: startDate };
+        if (endDate && dateFilter !== '24h') {
+          filter.createdAt.$lt = endDate;
+        }
       }
     }
 
     const jobs = await JobDetail.find(filter).lean()
-    res.json(jobs)
+    
+    // Attach recruiter username to the payload
+    const jobsWithRecruiters = await Promise.all(jobs.map(async (job) => {
+        try {
+            const user = await User.findById(job.postedby);
+            return {
+                ...job,
+                postedbyName: user ? user.userName : 'Unknown User'
+            };
+        } catch (e) {
+            return { ...job, postedbyName: 'Unknown User' };
+        }
+    }));
+
+    res.json(jobsWithRecruiters)
   } catch (err) {
     console.error(err)
     res.status(500).json({ message: "Server error" })

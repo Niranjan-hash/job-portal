@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FiMapPin, FiBriefcase } from 'react-icons/fi';
+import { FiMapPin, FiBriefcase, FiUser } from 'react-icons/fi';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import './joblist.css';
@@ -207,10 +207,6 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar, onSearchC
             <div className="info-row">
               <FiBriefcase /> {job.type}
             </div>
-            
-            <div className="salary-tag">
-              {job.salary || 'Salary Not Specified'}
-            </div>
 
             {job.skills && (
               <div className="card-skills">
@@ -219,6 +215,20 @@ function Joblist({ jobs, loading, error, showSearchbar, hideSearchbar, onSearchC
                 ))}
               </div>
             )}
+
+            <div className="salary-tag" style={{ marginTop: '10px' }}>
+              {job.salary || 'Salary Not Specified'}
+            </div>
+
+            <div className="job-description-preview" style={{ 
+              fontSize: '0.9rem', 
+              color: '#475569', 
+              margin: '15px 0',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {job.description}
+            </div>
             
             <button className="view-details-btn">
               View Details

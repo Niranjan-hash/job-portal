@@ -60,8 +60,14 @@ router.post('/login', async (req, res) => {
 // GET ALL USERS
 router.get('/users', authenticateAdmin, async (req, res) => {
     try {
-        const users = await User.find({}).select("-password");
-        res.json({ success: true, users });
+        const users = await User.find({}).select("-password").lean();
+        
+        const usersWithCounts = await Promise.all(users.map(async (user) => {
+            const totalJobs = await JobDetail.countDocuments({ postedby: user._id.toString() });
+            return { ...user, totalJobs };
+        }));
+
+        res.json({ success: true, users: usersWithCounts });
     } catch (error) {
         console.error("Fetch users error:", error);
         res.status(500).json({ success: false, message: "Failed to fetch users" });
@@ -127,6 +133,30 @@ router.delete('/jobs/:id', authenticateAdmin, async (req, res) => {
     } catch (error) {
         console.error("Delete job error:", error);
         res.status(500).json({ success: false, message: "Failed to delete job." });
+    }
+});
+
+// GET USER ACTIVITY
+router.get('/users/:id/activity', authenticateAdmin, async (req, res) => {
+    try {
+        const userId = req.params.id;
+        
+        // Find jobs posted by user
+        const jobsPosted = await JobDetail.find({ postedby: userId }).sort({ createdAt: -1 });
+        
+        // Find jobs user has applied to
+        const applications = await Application.find({ userId: userId }).sort({ createdAt: -1 });
+
+        res.json({ 
+            success: true, 
+            activity: {
+                jobsPosted,
+                applications
+            } 
+        });
+    } catch (error) {
+        console.error("Fetch user activity error:", error);
+        res.status(500).json({ success: false, message: "Failed to fetch user activity" });
     }
 });
 

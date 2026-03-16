@@ -154,7 +154,10 @@ const Settings = () => {
         localStorage.setItem('adminToken', response.data.token);
         toast.success(response.data.message);
         setShowAdminModal(false);
-        navigate('/admin');
+        // Add a slight delay to ensure localStorage is flushed/available to other components
+        setTimeout(() => {
+            navigate('/admin');
+        }, 100);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Admin login failed");

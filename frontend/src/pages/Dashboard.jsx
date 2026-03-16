@@ -424,6 +424,7 @@ function Dashboard() {
                           <option value="24h">Past 24 hours</option>
                           <option value="7d">Past Week</option>
                           <option value="30d">Past Month</option>
+                          <option value="365d">Past Year</option>
                         </select>
                       </div>
 
